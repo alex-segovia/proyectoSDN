@@ -9,7 +9,6 @@ import com.example.proyectosdn.repository.AtributoRepository;
 import com.example.proyectosdn.repository.DispositivoRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +54,7 @@ public class DispositivosController {
         model.addAttribute("dispositivo", new Dispositivo());
         model.addAttribute("usuarios", usuarioRepository.findAll());
         model.addAttribute("active", "dispositivos");
-        return "dispositivos/formulario";
+        return "dispositivos/formulario_dispositivos";
     }
 
     // Mostrar formulario de edición
@@ -69,7 +68,7 @@ public class DispositivosController {
         model.addAttribute("dispositivo", dispositivo);
         model.addAttribute("usuarios", usuarioRepository.findAll());
         model.addAttribute("active", "dispositivos");
-        return "dispositivos/formulario";
+        return "dispositivos/formulario_dispositivos";
     }
 
     // Guardar dispositivo (crear/actualizar)
@@ -84,7 +83,7 @@ public class DispositivosController {
         if (result.hasErrors()) {
             model.addAttribute("usuarios", usuarioRepository.findAll());
             model.addAttribute("active", "dispositivos");
-            return "dispositivos/formulario";
+            return "dispositivos/formulario_dispositivos";
         }
 
         try {
@@ -103,7 +102,7 @@ public class DispositivosController {
                 result.rejectValue("mac", "error.dispositivo", "La dirección MAC ya está registrada");
                 model.addAttribute("usuarios", usuarioRepository.findAll());
                 model.addAttribute("active", "dispositivos");
-                return "dispositivos/formulario";
+                return "dispositivos/formulario_dispositivos";
             }
 
             dispositivoRepository.save(dispositivo);
@@ -114,7 +113,7 @@ public class DispositivosController {
             model.addAttribute("error", "Error al guardar el dispositivo: " + e.getMessage());
             model.addAttribute("usuarios", usuarioRepository.findAll());
             model.addAttribute("active", "dispositivos");
-            return "dispositivos/formulario";
+            return "dispositivos/formulario_dispositivos";
         }
     }
 

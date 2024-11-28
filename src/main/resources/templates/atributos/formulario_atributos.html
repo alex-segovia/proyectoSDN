@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head(${atributo.id != null ? 'Editar Atributo' : 'Nuevo Atributo'})}">
+</head>
+<body id="body-pd">
+<header class="header" id="header">
+    <div class="header_toggle">
+        <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+    <div class="header_user">
+        <span>Usuario</span>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<!-- Container Principal -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-tag me-2'></i>
+                        <span th:text="${atributo.id != null ? 'Editar Atributo' : 'Nuevo Atributo'}"></span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/atributos/guardar}"
+                          th:object="${atributo}"
+                          method="POST"
+                          class="needs-validation"
+                          novalidate>
+
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row">
+                            <!-- Nombre del Atributo -->
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre del Atributo</label>
+                                <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class='bx bx-tag'></i>
+                                        </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           th:field="*{nombre}"
+                                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid' : ''"
+                                           required
+                                           minlength="3"
+                                           maxlength="45">
+                                    <div class="invalid-feedback"
+                                         th:errors="*{nombre}"
+                                         th:if="${#fields.hasErrors('nombre')}">
+                                        Error en el nombre
+                                    </div>
+                                </div>
+                                <small class="text-muted">El nombre debe tener entre 3 y 45 caracteres</small>
+                            </div>
+
+                            <!-- Puerto -->
+                            <div class="col-md-6 mb-3">
+                                <label for="puerto" class="form-label">Puerto</label>
+                                <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class='bx bx-plug'></i>
+                                        </span>
+                                    <input type="number"
+                                           class="form-control"
+                                           th:field="*{puerto}"
+                                           th:classappend="${#fields.hasErrors('puerto')} ? 'is-invalid' : ''"
+                                           min="1"
+                                           max="65535"
+                                           required>
+                                    <div class="invalid-feedback"
+                                         th:errors="*{puerto}"
+                                         th:if="${#fields.hasErrors('puerto')}">
+                                        Error en el puerto
+                                    </div>
+                                </div>
+                                <small class="text-muted">El puerto debe estar entre 1 y 65535</small>
+                            </div>
+
+                            <!-- Usuario Creador -->
+                            <div class="col-md-6 mb-3">
+                                <label for="usuarioCreador" class="form-label">Usuario Creador</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class='bx bx-user'></i>
+                                    </span>
+                                    <select class="form-select"
+                                            name="usuarioCreadorId"
+                                            id="usuarioCreador">
+                                        <option value="">Seleccione un usuario (temporal: hasta tener el sistema de autenticación)</option>
+                                        <option th:each="user : ${usuarios}"
+                                                th:value="${user.id}"
+                                                th:text="${user.nombres + ' ' + user.apellidoPaterno}"
+                                                th:selected="${atributo.usuarioCreador != null && atributo.usuarioCreador.id == user.id}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione un usuario creador
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="col-md-6 mb-3">
+                                <label for="estado" class="form-label">Estado</label>
+                                <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class='bx bx-toggle-right'></i>
+                                        </span>
+                                    <select class="form-select"
+                                            th:field="*{estado}"
+                                            required>
+                                        <option value="1">Activo</option>
+                                        <option value="0">Inactivo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a th:href="@{/atributos}"
+                                       class="btn btn-secondary">
+                                        <i class='bx bx-arrow-back me-1'></i>
+                                        Cancelar
+                                    </a>
+                                    <button type="submit"
+                                            class="btn btn-primary">
+                                        <i class='bx bx-save me-1'></i>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<!-- Scripts específicos del formulario -->
+<script th:inline="javascript">
+    // Validación del formulario
+    (function() {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })();
+
+    // Validación adicional del puerto
+    document.querySelector('input[name="puerto"]').addEventListener('input', function(e) {
+        let value = parseInt(e.target.value);
+        if (value < 1) {
+            e.target.value = 1;
+        } else if (value > 65535) {
+            e.target.value = 65535;
+        }
+    });
+</script>
+</body>
+</html>

@@ -87,7 +87,7 @@
                                         <i class='bx bx-user'></i>
                                     </span>
                                     <select class="form-select" id="usuario" name="usuario.id" required>
-                                        <option value="">Seleccione un usuario</option>
+                                        <option value="">Seleccione un usuario (temporal: hasta tener el sistema de autenticación)</option>
                                         <option th:each="user : ${usuarios}"
                                                 th:value="${user.id}"
                                                 th:text="${user.nombres + ' ' + user.apellidoPaterno}"
