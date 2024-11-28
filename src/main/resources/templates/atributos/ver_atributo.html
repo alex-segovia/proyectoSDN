@@ -81,8 +81,8 @@
                                         <dt class="col-sm-4">Nombre:</dt>
                                         <dd class="col-sm-8"
                                             th:text="${atributo.usuarioCreador.nombres + ' ' +
-                                                         atributo.usuarioCreador.apellidoPaterno + ' ' +
-                                                         atributo.usuarioCreador.apellidoMaterno}">
+                                                 atributo.usuarioCreador.apellidoPaterno + ' ' +
+                                                 atributo.usuarioCreador.apellidoMaterno}">
                                         </dd>
 
                                         <dt class="col-sm-4">DNI:</dt>
@@ -93,8 +93,8 @@
                                             <span class="badge bg-primary" th:text="${atributo.usuarioCreador.rol}"></span>
                                         </dd>
 
-                                        <dt class="col-sm-4">Correo:</dt>
-                                        <dd class="col-sm-8" th:text="${atributo.usuarioCreador.correo}"></dd>
+                                        <dt class="col-sm-4">Username:</dt>
+                                        <dd class="col-sm-8" th:text="${atributo.usuarioCreador.username}"></dd>
                                     </dl>
                                 </div>
                             </div>
@@ -135,7 +135,9 @@
                                 <td th:text="${apd.dispositivo.nombre}"></td>
                                 <td th:text="${apd.dispositivo.mac}"></td>
                                 <td th:text="${apd.dispositivo.usuario != null ?
-                                            apd.dispositivo.usuario.nombres + ' ' + apd.dispositivo.usuario.apellidoPaterno : 'No asignado'}">
+                                              apd.dispositivo.usuario.nombres + ' ' +
+                                              apd.dispositivo.usuario.apellidoPaterno + ' (' +
+                                              apd.dispositivo.usuario.username + ')' : 'No asignado'}">
                                 </td>
                                 <td>
                                             <span th:if="${apd.dispositivo.estado == 1}"
