@@ -1,6 +1,8 @@
 package com.example.proyectosdn.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,9 +23,11 @@ public class Dispositivo {
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
+    @Size(min = 3, max = 100)
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
+    @Pattern(regexp = "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
     @Column(name = "mac", nullable = false, length = 100)
     private String mac;
 

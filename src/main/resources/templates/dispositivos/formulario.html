@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zxx">
+<head th:replace="~{fragments/head :: head(${dispositivo.id != null ? 'Editar Dispositivo' : 'Nuevo Dispositivo'})}">
+</head>
+<body id="body-pd">
+<header class="header" id="header">
+    <div class="header_toggle">
+        <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+    <div class="header_user">
+        <span>Usuario</span>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<!-- Container Principal -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-device me-2'></i>
+                        <span th:text="${dispositivo.id != null ? 'Editar Dispositivo' : 'Nuevo Dispositivo'}"></span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/dispositivos/guardar}"
+                          th:object="${dispositivo}"
+                          method="POST"
+                          class="needs-validation"
+                          novalidate>
+
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row">
+                            <!-- Nombre del Dispositivo -->
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre del Dispositivo</label>
+                                <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class='bx bx-rename'></i>
+                                        </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           th:field="*{nombre}"
+                                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid' : ''"
+                                           required>
+                                    <div class="invalid-feedback"
+                                         th:errors="*{nombre}"
+                                         th:if="${#fields.hasErrors('nombre')}">
+                                        Error en el nombre
+                                    </div>
+                                </div>
+                                <small class="text-muted">Ingrese un nombre descriptivo para el dispositivo</small>
+                            </div>
+
+                            <!-- Dirección MAC -->
+                            <div class="col-md-6 mb-3">
+                                <label for="mac" class="form-label">Dirección MAC</label>
+                                <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class='bx bx-wifi'></i>
+                                        </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           th:field="*{mac}"
+                                           th:classappend="${#fields.hasErrors('mac')} ? 'is-invalid' : ''"
+                                           pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+                                           required>
+                                    <div class="invalid-feedback"
+                                         th:errors="*{mac}"
+                                         th:if="${#fields.hasErrors('mac')}">
+                                        Error en la dirección MAC
+                                    </div>
+                                </div>
+                                <small class="text-muted">Formato: XX:XX:XX:XX:XX:XX</small>
+                            </div>
+
+                            <!-- Usuario Asignado -->
+                            <div class="col-md-6 mb-3">
+                                <label for="usuario" class="form-label">Usuario Asignado</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class='bx bx-user'></i>
+                                    </span>
+                                    <select class="form-select" id="usuario" name="usuario.id" required>
+                                        <option value="">Seleccione un usuario</option>
+                                        <option th:each="user : ${usuarios}"
+                                                th:value="${user.id}"
+                                                th:text="${user.nombres + ' ' + user.apellidoPaterno}"
+                                                th:selected="${dispositivo.usuario != null && dispositivo.usuario.id == user.id}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione un usuario
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estado y Autenticación -->
+                            <div class="col-md-6 mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="estado" class="form-label">Estado</label>
+                                        <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class='bx bx-toggle-right'></i>
+                                                </span>
+                                            <select class="form-select"
+                                                    th:field="*{estado}"
+                                                    required>
+                                                <option value="1">Activo</option>
+                                                <option value="0">Inactivo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label d-block">Autenticación</label>
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   th:field="*{autenticado}"
+                                                   role="switch">
+                                            <label class="form-check-label"
+                                                   for="autenticado">Dispositivo autenticado</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a th:href="@{/dispositivos}"
+                                       class="btn btn-secondary">
+                                        <i class='bx bx-arrow-back me-1'></i>
+                                        Cancelar
+                                    </a>
+                                    <button type="submit"
+                                            class="btn btn-primary">
+                                        <i class='bx bx-save me-1'></i>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<div th:replace="~{fragments/scripts:: scripts}"></div>
+
+<!-- Scripts específicos del formulario -->
+<script th:inline="javascript">
+    // Validación del formulario
+    (function() {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })();
+
+    // Formateo de MAC address mientras se escribe
+    const macInput = document.querySelector('input[name="mac"]');
+    if (macInput) {
+        macInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9A-Fa-f]/g, '');
+            let formattedValue = '';
+
+            for(let i = 0; i < value.length && i < 12; i++) {
+                if(i > 0 && i % 2 === 0) {
+                    formattedValue += ':';
+                }
+                formattedValue += value[i];
+            }
+
+            e.target.value = formattedValue.toUpperCase();
+        });
+    }
+</script>
+
+</body>
+</html>

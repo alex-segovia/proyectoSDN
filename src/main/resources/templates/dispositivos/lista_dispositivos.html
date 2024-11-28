@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zxx">
+<head th:replace="~{fragments/head :: head('Gestión de Dispositivos')}">
+</head>
+<body id="body-pd">
+<header class="header" id="header">
+    <div class="header_toggle">
+        <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+    <div class="header_user">
+        <span >Usuario</span>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<!-- Container Principal -->
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestión de Dispositivos</h2>
+        <a th:href="@{/dispositivos/nuevo}" class="btn btn-primary">
+            <i class='bx bx-plus'></i> Nuevo Dispositivo
+        </a>
+    </div>
+
+    <!-- Alertas -->
+    <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${mensaje}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-body">
+            <table id="dispositivosTable" class="table table-striped" style="width:100%">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>MAC</th>
+                    <th>Usuario</th>
+                    <th>Autenticado</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="dispositivo : ${dispositivos}">
+                    <td th:text="${dispositivo.id}"></td>
+                    <td th:text="${dispositivo.nombre}"></td>
+                    <td th:text="${dispositivo.mac}"></td>
+                    <td th:text="${dispositivo.usuario != null ? dispositivo.usuario.nombres + ' ' + dispositivo.usuario.apellidoPaterno : 'No asignado'}"></td>
+                    <td class="text-center">
+                                <span th:if="${dispositivo.autenticado}"
+                                      class="badge bg-success">
+                                    <i class='bx bx-check'></i>
+                                </span>
+                        <span th:unless="${dispositivo.autenticado}"
+                              class="badge bg-danger">
+                                    <i class='bx bx-x'></i>
+                                </span>
+                    </td>
+                    <td class="text-center">
+                                <span th:if="${dispositivo.estado == 1}"
+                                      class="badge bg-success">Activo</span>
+                        <span th:unless="${dispositivo.estado == 1}"
+                              class="badge bg-danger">Inactivo</span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a th:href="@{/dispositivos/ver/{id}(id=${dispositivo.id})}"
+                               class="btn btn-info btn-sm"
+                               title="Ver detalles">
+                                <i class='bx bx-show'></i>
+                            </a>
+                            <a th:href="@{/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                               class="btn btn-warning btn-sm"
+                               title="Editar">
+                                <i class='bx bx-edit'></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    title="Eliminar"
+                                    th:onclick="'confirmarEliminar(' + ${dispositivo.id} + ')'">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="eliminarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea eliminar este dispositivo?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="eliminarForm" method="POST">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<!-- Scripts específicos de la página -->
+<script th:inline="javascript">
+    $(document).ready(function() {
+        const table = $('#dispositivosTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            responsive: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="bx bx-file me-1"></i> Excel',
+                    className: 'btn btn-success btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="bx bx-file-pdf me-1"></i> PDF',
+                    className: 'btn btn-danger btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="bx bx-printer me-1"></i> Imprimir',
+                    className: 'btn btn-primary btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    targets: -1,
+                    orderable: false,
+                    searchable: false
+                }
+            ]
+        });
+
+        // Establecer el orden después de la inicialización
+        table.order([0, 'desc']).draw();
+    });
+
+    function confirmarEliminar(id) {
+        const modal = new bootstrap.Modal(document.getElementById('eliminarModal'));
+        const form = document.getElementById('eliminarForm');
+        form.action = /*[[@{/dispositivos/eliminar/}]]*/ '' + id;
+        modal.show();
+    }
+
+    // Cerrar automáticamente las alertas después de 5 segundos
+    window.setTimeout(function() {
+        $(".alert").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+        });
+    }, 5000);
+</script>
+
+</body>
+</html>

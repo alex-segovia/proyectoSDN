@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zxx">
+<head th:replace="~{fragments/head :: head('Detalles del Dispositivo')}">
+</head>
+<body id="body-pd">
+<header class="header" id="header">
+    <div class="header_toggle">
+        <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+    <div class="header_user">
+        <span>Usuario</span>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<!-- Container Principal -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Card de Información Principal -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-device me-2'></i>
+                        Información del Dispositivo
+                    </h5>
+                    <div>
+                        <a th:href="@{/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                           class="btn btn-light btn-sm">
+                            <i class='bx bx-edit me-1'></i>
+                            Editar
+                        </a>
+                        <a th:href="@{/dispositivos}"
+                           class="btn btn-light btn-sm ms-2">
+                            <i class='bx bx-arrow-back me-1'></i>
+                            Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Columna Izquierda -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Información Básica</h6>
+                                <dl class="row">
+                                    <dt class="col-sm-4">ID:</dt>
+                                    <dd class="col-sm-8" th:text="${dispositivo.id}"></dd>
+
+                                    <dt class="col-sm-4">Nombre:</dt>
+                                    <dd class="col-sm-8" th:text="${dispositivo.nombre}"></dd>
+
+                                    <dt class="col-sm-4">MAC:</dt>
+                                    <dd class="col-sm-8">
+                                        <span class="badge bg-secondary" th:text="${dispositivo.mac}"></span>
+                                    </dd>
+                                </dl>
+                            </div>
+
+                            <div>
+                                <h6 class="text-muted mb-2">Estado y Autenticación</h6>
+                                <dl class="row">
+                                    <dt class="col-sm-4">Estado:</dt>
+                                    <dd class="col-sm-8">
+                                            <span th:if="${dispositivo.estado == 1}"
+                                                  class="badge bg-success">
+                                                <i class='bx bx-check-circle me-1'></i>Activo
+                                            </span>
+                                        <span th:unless="${dispositivo.estado == 1}"
+                                              class="badge bg-danger">
+                                                <i class='bx bx-x-circle me-1'></i>Inactivo
+                                            </span>
+                                    </dd>
+
+                                    <dt class="col-sm-4">Autenticado:</dt>
+                                    <dd class="col-sm-8">
+                                            <span th:if="${dispositivo.autenticado}"
+                                                  class="badge bg-success">
+                                                <i class='bx bx-check-circle me-1'></i>Sí
+                                            </span>
+                                        <span th:unless="${dispositivo.autenticado}"
+                                              class="badge bg-danger">
+                                                <i class='bx bx-x-circle me-1'></i>No
+                                            </span>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Información del Usuario</h6>
+                            <div th:if="${dispositivo.usuario != null}" class="card bg-light">
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">Nombre:</dt>
+                                        <dd class="col-sm-8"
+                                            th:text="${dispositivo.usuario.nombres + ' ' +
+                                                         dispositivo.usuario.apellidoPaterno + ' ' +
+                                                         dispositivo.usuario.apellidoMaterno}">
+                                        </dd>
+
+                                        <dt class="col-sm-4">DNI:</dt>
+                                        <dd class="col-sm-8" th:text="${dispositivo.usuario.dni}"></dd>
+
+                                        <dt class="col-sm-4">Rol:</dt>
+                                        <dd class="col-sm-8">
+                                            <span class="badge bg-primary" th:text="${dispositivo.usuario.rol}"></span>
+                                        </dd>
+
+                                        <dt class="col-sm-4">Correo:</dt>
+                                        <dd class="col-sm-8" th:text="${dispositivo.usuario.correo}"></dd>
+                                    </dl>
+                                </div>
+                            </div>
+                            <div th:unless="${dispositivo.usuario != null}"
+                                 class="alert alert-warning">
+                                <i class='bx bx-error me-2'></i>
+                                No hay usuario asignado a este dispositivo
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Atributos -->
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-tag me-2'></i>
+                        Atributos Asignados
+                    </h5>
+                    <button class="btn btn-light btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#agregarAtributoModal">
+                        <i class='bx bx-plus me-1'></i>
+                        Agregar Atributo
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" th:if="${!dispositivo.atributoPorDispositivos.empty}">
+                        <table class="table table-hover" id="atributosTable">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Puerto</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="atributo : ${dispositivo.atributoPorDispositivos}">
+                                <td th:text="${atributo.atributo.id}"></td>
+                                <td th:text="${atributo.atributo.nombre}"></td>
+                                <td th:text="${atributo.atributo.puerto}"></td>
+                                <td th:text="${atributo.motivo}"></td>
+                                <td>
+                                            <span th:if="${atributo.estado == 1}"
+                                                  class="badge bg-success">Activo</span>
+                                    <span th:unless="${atributo.estado == 1}"
+                                          class="badge bg-danger">Inactivo</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm"
+                                            th:onclick="'confirmarEliminarAtributo(' + ${atributo.id} + ')'">
+                                        <i class='bx bx-trash'></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${dispositivo.atributoPorDispositivos.empty}"
+                         class="alert alert-info">
+                        <i class='bx bx-info-circle me-2'></i>
+                        Este dispositivo no tiene atributos asignados
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Atributo -->
+<div class="modal fade" id="agregarAtributoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Atributo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/dispositivos/agregarAtributo}" method="POST">
+                <input type="hidden" name="idDispositivo" th:value="${dispositivo.id}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="idAtributo" class="form-label">Atributo</label>
+                        <select class="form-select" id="idAtributo" name="idAtributo" required>
+                            <option value="">Seleccione un atributo</option>
+                            <option th:each="attr : ${atributosDisponibles}"
+                                    th:value="${attr.id}"
+                                    th:text="${attr.nombre}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo</label>
+                        <textarea class="form-control"
+                                  id="motivo"
+                                  name="motivo"
+                                  rows="3"
+                                  required>
+                            </textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar Atributo -->
+<div class="modal fade" id="eliminarAtributoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea eliminar este atributo del dispositivo?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="eliminarAtributoForm" method="POST">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<!-- Scripts específicos -->
+<script th:inline="javascript">
+    $(document).ready(function() {
+        const table = $('#atributosTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            pageLength: 5,
+            lengthMenu: [5, 10, 25]
+        });
+
+        // Establecer el orden después de la inicialización
+        table.order([0, 'asc']).draw();
+    });
+
+    function confirmarEliminarAtributo(id) {
+        const modal = new bootstrap.Modal(document.getElementById('eliminarAtributoModal'));
+        const form = document.getElementById('eliminarAtributoForm');
+        const dispositivoId = /*[[${dispositivo.id}]]*/ '';
+        form.action = '/dispositivos/' + dispositivoId + '/eliminarAtributo/' + id;
+        modal.show();
+    }
+</script>
+</body>
+</html>
