@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Detalles del Usuario')}">
+</head>
+<body id="body-pd">
+<header class="header" id="header">
+    <div class="header_toggle">
+        <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+    <div class="header_user">
+        <span >Usuario</span>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<!-- Container Principal -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Card de Información Principal -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-user me-2'></i>
+                        Información del Usuario
+                    </h5>
+                    <div>
+                        <a th:href="@{/usuarios/editar/{id}(id=${usuario.id})}"
+                           class="btn btn-light btn-sm">
+                            <i class='bx bx-edit me-1'></i>
+                            Editar
+                        </a>
+                        <a th:href="@{/usuarios}"
+                           class="btn btn-light btn-sm ms-2">
+                            <i class='bx bx-arrow-back me-1'></i>
+                            Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Información Personal -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Información Personal</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">ID:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.id}"></dd>
+
+                                <dt class="col-sm-4">Nombres:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.nombres}"></dd>
+
+                                <dt class="col-sm-4">Apellido Paterno:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.apellidoPaterno}"></dd>
+
+                                <dt class="col-sm-4">Apellido Materno:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.apellidoMaterno}"></dd>
+
+                                <dt class="col-sm-4">DNI:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.dni}"></dd>
+                            </dl>
+                        </div>
+
+                        <!-- Información de Cuenta -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Información de Cuenta</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Username:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.username}"></dd>
+
+                                <dt class="col-sm-4">Attribute:</dt>
+                                <dd class="col-sm-8" th:text="${usuario.attribute}"></dd>
+
+                                <dt class="col-sm-4">Rol:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-primary" th:text="${usuario.rol}"></span>
+                                </dd>
+
+                                <dt class="col-sm-4">Estado:</dt>
+                                <dd class="col-sm-8">
+                                        <span th:if="${usuario.estado == 1}"
+                                              class="badge bg-success">
+                                            <i class='bx bx-check-circle me-1'></i>Activo
+                                        </span>
+                                    <span th:unless="${usuario.estado == 1}"
+                                          class="badge bg-danger">
+                                            <i class='bx bx-x-circle me-1'></i>Inactivo
+                                        </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Dispositivos -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-devices me-2'></i>
+                        Dispositivos Registrados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" th:if="${!usuario.dispositivos.empty}">
+                        <table class="table table-hover" id="dispositivosTable">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>MAC</th>
+                                <th>Autenticado</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="dispositivo : ${usuario.dispositivos}">
+                                <td th:text="${dispositivo.id}"></td>
+                                <td th:text="${dispositivo.nombre}"></td>
+                                <td th:text="${dispositivo.mac}"></td>
+                                <td class="text-center">
+                                            <span th:if="${dispositivo.autenticado}"
+                                                  class="badge bg-success">
+                                                <i class='bx bx-check'></i>
+                                            </span>
+                                    <span th:unless="${dispositivo.autenticado}"
+                                          class="badge bg-danger">
+                                                <i class='bx bx-x'></i>
+                                            </span>
+                                </td>
+                                <td class="text-center">
+                                            <span th:if="${dispositivo.estado == 1}"
+                                                  class="badge bg-success">Activo</span>
+                                    <span th:unless="${dispositivo.estado == 1}"
+                                          class="badge bg-danger">Inactivo</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/dispositivos/ver/{id}(id=${dispositivo.id})}"
+                                       class="btn btn-info btn-sm">
+                                        <i class='bx bx-show'></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${usuario.dispositivos.empty}"
+                         class="alert alert-info">
+                        <i class='bx bx-info-circle me-2'></i>
+                        Este usuario no tiene dispositivos registrados
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Atributos Creados -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-tag me-2'></i>
+                        Atributos Creados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" th:if="${!usuario.atributos.empty}">
+                        <table class="table table-hover" id="atributosTable">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Puerto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="atributo : ${usuario.atributos}">
+                                <td th:text="${atributo.id}"></td>
+                                <td th:text="${atributo.nombre}"></td>
+                                <td th:text="${atributo.puerto}"></td>
+                                <td class="text-center">
+                                            <span th:if="${atributo.estado == 1}"
+                                                  class="badge bg-success">Activo</span>
+                                    <span th:unless="${atributo.estado == 1}"
+                                          class="badge bg-danger">Inactivo</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/atributos/ver/{id}(id=${atributo.id})}"
+                                       class="btn btn-info btn-sm">
+                                        <i class='bx bx-show'></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${usuario.atributos.empty}"
+                         class="alert alert-info">
+                        <i class='bx bx-info-circle me-2'></i>
+                        Este usuario no ha creado atributos
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<!-- Scripts específicos -->
+<script th:inline="javascript">
+    $(document).ready(function() {
+        $('#dispositivosTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            pageLength: 5,
+            lengthMenu: [5, 10, 25],
+            order: [[0, 'asc']]
+        });
+
+        $('#atributosTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            pageLength: 5,
+            lengthMenu: [5, 10, 25],
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+</body>
+</html>

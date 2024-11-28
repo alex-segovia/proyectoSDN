@@ -82,6 +82,14 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- SSH Client para el túnel SSh-->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.55</version>
+        </dependency>
+
+
 
     </dependencies>
 
