@@ -282,7 +282,7 @@
                     <input id="passwordLogin" type="password" name="password" required="required"/>
                 </div>
                 <div class="form-group">
-                    <button type="submit">Ingresar</button>
+                    <button onclick="conectar()">Ingresar</button>
                 </div>
             </form>
         </div>
@@ -364,6 +364,27 @@
             }, 200);
         });
     });
+    function conectar(){
+        let email = document.getElementById("correoLogin").value;
+        let password = document.getElementById("passwordLogin").value;
+        let data = {
+            "email" : email
+            ,
+            "password" : password
+        };
+        $.ajax({
+            url: "/autenticacion/autenticar",          // La URL a la que se enviará la solicitud
+            type: "POST",      // El método HTTP: GET, POST, PUT, DELETE, etc.
+            data: data, // Datos a enviar (convertidos a JSON si es necesario)
+            contentType: "application/json", // Especificar el tipo de contenido
+            success: function (response) {
+                alert("Hola , estás autenticado");
+            },
+            error: function (xhr, status, error) {
+                alert("Hola , no estás autenticado");
+            }
+        });
+    }
 </script>
 
 </body>

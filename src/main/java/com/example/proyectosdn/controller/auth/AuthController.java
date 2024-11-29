@@ -37,7 +37,7 @@ public class AuthController {
     private int authPort = 1812; // Puerto de autenticación (por defecto 1812)
 
     @PostMapping("/autenticar")
-    public ResponseEntity<HashMap<String,Object>> authenticate(String username, String password) {
+    public ResponseEntity<HashMap<String,Object>> autenticar(String username, String password) {
         HashMap<String,Object>responseMap=new HashMap<>();
 
         try {
