@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/usuarios")
+@RequestMapping("/sdn/usuarios")
 @Slf4j
 public class UsuariosController {
 

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/dispositivos")
+@RequestMapping("/sdn/dispositivos")
 @Slf4j
 public class DispositivosController {
 

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/atributos")
+@RequestMapping("/sdn/atributos")
 @Slf4j
 public class AtributosController {
 

@@ -1,7 +1,11 @@
 package com.example.proyectosdn.controller.auth;
 
+import com.example.proyectosdn.entity.SesionActiva;
 import com.example.proyectosdn.entity.Usuario;
+import com.example.proyectosdn.extra.Utilities;
+import com.example.proyectosdn.repository.SesionActivaRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +29,7 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 
 @Controller
-@RequestMapping("/autenticacion")
+@RequestMapping("/sdn/autenticacion")
 @Slf4j
 public class AuthController {
 
@@ -35,24 +39,38 @@ public class AuthController {
     private String radiusServer = "127.0.0.1"; // Dirección del servidor RADIUS
     private String sharedSecret = "testing123"; // Secreto compartido
     private int authPort = 1812; // Puerto de autenticación (por defecto 1812)
+    @Autowired
+    private SesionActivaRepository sesionActivaRepository;
 
     @PostMapping("/autenticar")
-    public ResponseEntity<HashMap<String,Object>> autenticar(String username, String password) {
+    public ResponseEntity<HashMap<String,Object>> autenticar(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletRequest httpRequest) {
         HashMap<String,Object>responseMap=new HashMap<>();
-
         try {
+            String ipAdd=httpRequest.getRemoteAddr();
             RadiusClient client = new RadiusClient(radiusServer, sharedSecret);
             client.setAuthPort(authPort);
             AccessRequest request = new AccessRequest(username, password);
             request.setAuthProtocol(AccessRequest.AUTH_PAP);
 
-            // Envía la solicitud al servidor RADIUS
             RadiusPacket response = client.authenticate(request);
 
-            // Verifica si la respuesta es de tipo "Access-Accept"
             if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
+                SesionActiva sesionActiva=sesionActivaRepository.obtenerUltimaSesionActiva(username);
+                if(sesionActiva!=null) {
+                    sesionActiva.setLastActivity(Utilities.obtenerFechaHoraActual());
+                    sesionActivaRepository.save(sesionActiva);
+                }else {
+                    sesionActiva=new SesionActiva();
+                    sesionActiva.setSessionStart(Utilities.obtenerFechaHoraActual());
+                    sesionActiva.setLastActivity(Utilities.obtenerFechaHoraActual());
+                    sesionActiva.setSessionTimeout(3600);
+                    sesionActiva.setUsername(username);
+                    sesionActiva.setActive(true);
+                    sesionActivaRepository.save(sesionActiva);
+                }
                 System.out.println("Authentication successful");
                 responseMap.put("status","success");
+                responseMap.put("IP",ipAdd);
                 responseMap.put("content",true);
                 return ResponseEntity.ok(responseMap);
             } else if (response.getPacketType() == RadiusPacket.ACCESS_REJECT) {

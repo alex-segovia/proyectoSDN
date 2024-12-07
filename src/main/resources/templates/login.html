@@ -325,10 +325,7 @@
     </div>
 </div>
 
-<script
-        src="https://code.jquery.com/jquery-3.6.0.min.js"
-        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-        crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
 </script>
 
 <script>
@@ -365,22 +362,24 @@
         });
     });
     function conectar(){
-        let email = document.getElementById("correoLogin").value;
-        let password = document.getElementById("passwordLogin").value;
+        let username = $("#correoLogin").val();
+        let password = $("#passwordLogin").val();
         let data = {
-            "email" : email
-            ,
+            "username" : username,
             "password" : password
         };
+        console.log(data);
         $.ajax({
-            url: "/autenticacion/autenticar",          // La URL a la que se enviará la solicitud
-            type: "POST",      // El método HTTP: GET, POST, PUT, DELETE, etc.
-            data: data, // Datos a enviar (convertidos a JSON si es necesario)
-            contentType: "application/json", // Especificar el tipo de contenido
+            url: "/sdn/autenticacion/autenticar",
+            type: "POST",
+            data: data,
             success: function (response) {
+                console.log(response.content);
                 alert("Hola , estás autenticado");
             },
             error: function (xhr, status, error) {
+                const jsonResponse=xhr.responseText;
+                console.log(jsonResponse);
                 alert("Hola , no estás autenticado");
             }
         });
