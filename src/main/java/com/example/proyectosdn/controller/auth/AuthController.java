@@ -26,6 +26,10 @@ import org.tinyradius.packet.RadiusPacket;
 import org.tinyradius.util.RadiusClient;
 
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
 
 @Controller
@@ -96,6 +100,7 @@ public class AuthController {
     public String mostrarLogin(Model model,
                                @RequestParam(required = false) String logout,
                                HttpSession session) {
+        model.addAttribute("usuario", new Usuario());
         return "login";
     }
 
@@ -105,6 +110,44 @@ public class AuthController {
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
 
-        return "";
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("error", "Por favor, corrige los errores del formulario.");
+            return "login";
+        }
+
+        try {
+            // Verificar si el correo ya está registrado
+            if (usuarioRepository.findByUsername(usuario.getUsername()).isPresent()) {
+                model.addAttribute("error", "El correo ya está registrado.");
+                return "login";
+            }
+
+            String hashedPassword = hashPassword(usuario.getValue());
+            usuario.setOp("=");
+            usuario.setAttribute("Cleartext-Password");
+            usuario.setRol("ALUMNO");
+            usuario.setValue(hashedPassword);
+            usuario.setEstado(Integer.valueOf("1"));
+
+            usuarioRepository.save(usuario);
+
+            redirectAttributes.addFlashAttribute("success", "Usuario registrado exitosamente.");
+            return "redirect:/sdn/autenticacion/";
+        } catch (Exception e) {
+            model.addAttribute("error", "Ocurrió un error al registrar al usuario: " + e.getMessage());
+            return "login";
+        }
+    }
+
+
+    private String hashPassword(String password) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        String salt = "SALT123!";
+        String saltedPassword = password + salt;
+
+        byte[] encodedHash = digest.digest(saltedPassword.getBytes(StandardCharsets.UTF_8));
+
+        return Base64.getEncoder().encodeToString(encodedHash);
     }
 }
