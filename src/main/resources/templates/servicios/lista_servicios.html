@@ -19,7 +19,7 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Gestión de Atributos</h2>
-        <a th:href="@{/atributos/nuevo}" class="btn btn-primary">
+        <a th:href="@{/templates/servicios/nuevo}" class="btn btn-primary">
             <i class='bx bx-plus'></i> Nuevo Atributo
         </a>
     </div>
@@ -69,12 +69,12 @@
                     </td>
                     <td>
                         <div class="btn-group">
-                            <a th:href="@{/atributos/ver/{id}(id=${atributo.id})}"
+                            <a th:href="@{/templates/servicios/ver/{id}(id=${atributo.id})}"
                                class="btn btn-info btn-sm"
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/atributos/editar/{id}(id=${atributo.id})}"
+                            <a th:href="@{/templates/servicios/editar/{id}(id=${atributo.id})}"
                                class="btn btn-warning btn-sm"
                                title="Editar">
                                 <i class='bx bx-edit'></i>

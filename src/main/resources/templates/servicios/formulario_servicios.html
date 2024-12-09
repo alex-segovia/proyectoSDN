@@ -27,7 +27,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/atributos/guardar}"
+                    <form th:action="@{/templates/servicios/guardar}"
                           th:object="${atributo}"
                           method="POST"
                           class="needs-validation"
@@ -127,7 +127,7 @@
                             <div class="col-12">
                                 <hr>
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a th:href="@{/atributos}"
+                                    <a th:href="@{/templates/servicios}"
                                        class="btn btn-secondary">
                                         <i class='bx bx-arrow-back me-1'></i>
                                         Cancelar

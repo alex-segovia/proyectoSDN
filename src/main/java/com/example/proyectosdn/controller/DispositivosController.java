@@ -1,11 +1,8 @@
 package com.example.proyectosdn.controller;
 
 import com.example.proyectosdn.entity.Atributo;
-import com.example.proyectosdn.entity.AtributoPorDispositivo;
 import com.example.proyectosdn.entity.Dispositivo;
 import com.example.proyectosdn.entity.Usuario;
-import com.example.proyectosdn.repository.AtributoPorDispositivoRepository;
-import com.example.proyectosdn.repository.AtributoRepository;
 import com.example.proyectosdn.repository.DispositivoRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;

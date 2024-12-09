@@ -1,10 +1,10 @@
 package com.example.proyectosdn.controller;
 
-import com.example.proyectosdn.entity.Atributo;
 import com.example.proyectosdn.entity.Dispositivo;
+import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.Usuario;
-import com.example.proyectosdn.repository.AtributoRepository;
 import com.example.proyectosdn.repository.DispositivoRepository;
+import com.example.proyectosdn.repository.ServicioRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -31,7 +31,7 @@ public class UsuariosController {
     private DispositivoRepository dispositivoRepository;
 
     @Autowired
-    private AtributoRepository atributoRepository;
+    private ServicioRepository servicioRepository;
 
     // Listar usuarios
     @GetMapping("")
@@ -151,10 +151,10 @@ public class UsuariosController {
             }
 
             // Verificar si tiene atributos creados
-            List<Atributo> atributos = atributoRepository.findByUsuarioCreadorId(id);
-            if (!atributos.isEmpty()) {
+            List<Servicio> servicios = servicioRepository.findByUsuarioCreadorId(id);
+            if (!servicios.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error",
-                        "No se puede eliminar el usuario porque ha creado " + atributos.size() +
+                        "No se puede eliminar el usuario porque ha creado " + servicios.size() +
                                 " atributo(s)");
                 return "redirect:/usuarios";
             }
