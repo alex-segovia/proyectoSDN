@@ -63,5 +63,5 @@ public class Usuario {
     private List<Dispositivo> dispositivos = new ArrayList<>();
 
     @OneToMany(mappedBy = "usuarioCreador")
-    private List<Atributo> atributos = new ArrayList<>();
+    private List<Servicio> servicios = new ArrayList<>();
 }

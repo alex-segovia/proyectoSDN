@@ -38,5 +38,5 @@ public class Dispositivo {
     private Integer estado;
 
     @OneToMany(mappedBy = "dispositivo")
-    private List<ServicioPorDispositivo> atributoPorDispositivos;
+    private List<ServicioPorDispositivo> servicioPorDispositivos;
 }

@@ -145,7 +145,7 @@ public class AtributosController {
 
             // Verificar si el atributo está siendo usado por algún dispositivo
             List<ServicioPorDispositivo> asociaciones = servicioPorDispositivoRepository
-                    .findByAtributoId(servicio.getId());
+                    .findByServicioId(servicio.getId());
 
             if (!asociaciones.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error",

@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface ServicioPorDispositivoRepository extends JpaRepository<ServicioPorDispositivo, Integer> {
     List<ServicioPorDispositivo> findByDispositivoId(Integer dispositivoId);
-    List<ServicioPorDispositivo> findByAtributoId(Integer atributoId);
+    List<ServicioPorDispositivo> findByServicioId(Integer servicioId);
 
 }
