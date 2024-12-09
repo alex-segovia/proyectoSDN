@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -31,5 +34,8 @@ public class Servicio {
     @NotNull
     @Column(name = "estado", nullable = false)
     private Integer estado;
+
+    @OneToMany(mappedBy = "atributo")
+    private List<ServicioPorDispositivo> servicioPorDispositivos = new ArrayList<>();
 
 }

@@ -149,12 +149,12 @@ public class UsuariosController {
                 return "redirect:/usuarios";
             }
 
-            // Verificar si tiene atributos creados
+            // Verificar si tiene servicios creados
             List<Servicio> servicios = servicioRepository.findByUsuarioCreadorId(id);
             if (!servicios.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error",
                         "No se puede eliminar el usuario porque ha creado " + servicios.size() +
-                                " atributo(s)");
+                                " servicios(s)");
                 return "redirect:/usuarios";
             }
 

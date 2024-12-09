@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
-<head th:replace="~{fragments/head :: head(${atributo.id != null ? 'Editar Atributo' : 'Nuevo Atributo'})}">
+<head th:replace="~{fragments/head :: head(${servicio.id != null ? 'Editar Servicio' : 'Nuevo Servicio'})}">
 </head>
 <body id="body-pd">
 <header class="header" id="header">
@@ -23,12 +23,12 @@
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>
-                        <span th:text="${atributo.id != null ? 'Editar Atributo' : 'Nuevo Atributo'}"></span>
+                        <span th:text="${servicio.id != null ? 'Editar Servicio' : 'Nuevo Servicio'}"></span>
                     </h5>
                 </div>
                 <div class="card-body">
                     <form th:action="@{/templates/servicios/guardar}"
-                          th:object="${atributo}"
+                          th:object="${servicio}"
                           method="POST"
                           class="needs-validation"
                           novalidate>
@@ -36,9 +36,9 @@
                         <input type="hidden" th:field="*{id}">
 
                         <div class="row">
-                            <!-- Nombre del Atributo -->
+                            <!-- Nombre del Servicio -->
                             <div class="col-md-6 mb-3">
-                                <label for="nombre" class="form-label">Nombre del Atributo</label>
+                                <label for="nombre" class="form-label">Nombre del Servicio</label>
                                 <div class="input-group">
                                         <span class="input-group-text">
                                             <i class='bx bx-tag'></i>
@@ -96,7 +96,7 @@
                                         <option th:each="user : ${usuarios}"
                                                 th:value="${user.id}"
                                                 th:text="${user.nombres + ' ' + user.apellidoPaterno}"
-                                                th:selected="${atributo.usuarioCreador != null && atributo.usuarioCreador.id == user.id}">
+                                                th:selected="${servicio.usuarioCreador != null && servicio.usuarioCreador.id == user.id}">
                                         </option>
                                     </select>
                                     <div class="invalid-feedback">

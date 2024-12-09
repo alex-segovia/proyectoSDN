@@ -154,17 +154,17 @@
                 </div>
             </div>
 
-            <!-- Card de Atributos Creados -->
+            <!-- Card de Servicios Creados -->
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>
-                        Atributos Creados
+                        Servicios Creados
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive" th:if="${!usuario.atributos.empty}">
-                        <table class="table table-hover" id="atributosTable">
+                    <div class="table-responsive" th:if="${!usuario.servicios.empty}">
+                        <table class="table table-hover" id="serviciosTable">
                             <thead>
                             <tr>
                                 <th>ID</th>
@@ -175,18 +175,18 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="atributo : ${usuario.atributos}">
-                                <td th:text="${atributo.id}"></td>
-                                <td th:text="${atributo.nombre}"></td>
-                                <td th:text="${atributo.puerto}"></td>
+                            <tr th:each="servicio : ${usuario.servicios}">
+                                <td th:text="${servicio.id}"></td>
+                                <td th:text="${servicio.nombre}"></td>
+                                <td th:text="${servicio.puerto}"></td>
                                 <td class="text-center">
-                                            <span th:if="${atributo.estado == 1}"
+                                            <span th:if="${servicio.estado == 1}"
                                                   class="badge bg-success">Activo</span>
-                                    <span th:unless="${atributo.estado == 1}"
+                                    <span th:unless="${servicio.estado == 1}"
                                           class="badge bg-danger">Inactivo</span>
                                 </td>
                                 <td>
-                                    <a th:href="@{/templates/servicios/ver/{id}(id=${atributo.id})}"
+                                    <a th:href="@{/templates/servicios/ver/{id}(id=${servicio.id})}"
                                        class="btn btn-info btn-sm">
                                         <i class='bx bx-show'></i>
                                     </a>
@@ -195,10 +195,10 @@
                             </tbody>
                         </table>
                     </div>
-                    <div th:if="${usuario.atributos.empty}"
+                    <div th:if="${usuario.servicios.empty}"
                          class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
-                        Este usuario no ha creado atributos
+                        Este usuario no ha creado servicios
                     </div>
                 </div>
             </div>
@@ -221,7 +221,7 @@
             order: [[0, 'asc']]
         });
 
-        $('#atributosTable').DataTable({
+        $('#serviciosTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
             },

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
-<head th:replace="~{fragments/head :: head('Gestión de Atributos')}">
+<head th:replace="~{fragments/head :: head('Gestión de Servicios')}">
 </head>
 <body id="body-pd">
 <header class="header" id="header">
@@ -18,9 +18,9 @@
 <!-- Container Principal -->
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gestión de Atributos</h2>
+        <h2>Gestión de Servicios</h2>
         <a th:href="@{/templates/servicios/nuevo}" class="btn btn-primary">
-            <i class='bx bx-plus'></i> Nuevo Atributo
+            <i class='bx bx-plus'></i> Nuevo Servicios
         </a>
     </div>
 
@@ -37,7 +37,7 @@
     <!-- Tabla -->
     <div class="card">
         <div class="card-body">
-            <table id="atributosTable" class="table table-striped" style="width:100%">
+            <table id="serviciosTable" class="table table-striped" style="width:100%">
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -50,31 +50,31 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="atributo : ${atributos}">
-                    <td th:text="${atributo.id}"></td>
-                    <td th:text="${atributo.nombre}"></td>
-                    <td th:text="${atributo.puerto}"></td>
-                    <td th:text="${atributo.usuarioCreador != null ?
-                                atributo.usuarioCreador.nombres + ' ' + atributo.usuarioCreador.apellidoPaterno : 'No asignado'}">
+                <tr th:each="servicio : ${servicios}">
+                    <td th:text="${servicio.id}"></td>
+                    <td th:text="${servicio.nombre}"></td>
+                    <td th:text="${servicio.puerto}"></td>
+                    <td th:text="${servicio.usuarioCreador != null ?
+                                servicio.usuarioCreador.nombres + ' ' + servicio.usuarioCreador.apellidoPaterno : 'No asignado'}">
                     </td>
                     <td class="text-center">
                                 <span class="badge bg-info"
-                                      th:text="${atributo.atributoPorDispositivos.size()}">0</span>
+                                      th:text="${servicio.servicioPorDispositivos.size()}">0</span>
                     </td>
                     <td class="text-center">
-                                <span th:if="${atributo.estado == 1}"
+                                <span th:if="${servicio.estado == 1}"
                                       class="badge bg-success">Activo</span>
-                        <span th:unless="${atributo.estado == 1}"
+                        <span th:unless="${servicio.estado == 1}"
                               class="badge bg-danger">Inactivo</span>
                     </td>
                     <td>
                         <div class="btn-group">
-                            <a th:href="@{/templates/servicios/ver/{id}(id=${atributo.id})}"
+                            <a th:href="@{/templates/servicios/ver/{id}(id=${servicio.id})}"
                                class="btn btn-info btn-sm"
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/templates/servicios/editar/{id}(id=${atributo.id})}"
+                            <a th:href="@{/templates/servicios/editar/{id}(id=${servicio.id})}"
                                class="btn btn-warning btn-sm"
                                title="Editar">
                                 <i class='bx bx-edit'></i>
@@ -82,7 +82,7 @@
                             <button type="button"
                                     class="btn btn-danger btn-sm"
                                     title="Eliminar"
-                                    th:onclick="'confirmarEliminar(' + ${atributo.id} + ')'">
+                                    th:onclick="'confirmarEliminar(' + ${servicio.id} + ')'">
                                 <i class='bx bx-trash'></i>
                             </button>
                         </div>
@@ -103,7 +103,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                ¿Está seguro que desea eliminar este atributo?
+                ¿Está seguro que desea eliminar este servicio?
                 Esta acción también eliminará todas las asociaciones con dispositivos.
             </div>
             <div class="modal-footer">
@@ -122,7 +122,7 @@
 <!-- Scripts específicos de la página -->
 <script th:inline="javascript">
     $(document).ready(function() {
-        const table = $('#atributosTable').DataTable({
+        const table = $('#serviciosTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
             },
@@ -170,7 +170,7 @@
     function confirmarEliminar(id) {
         const modal = new bootstrap.Modal(document.getElementById('eliminarModal'));
         const form = document.getElementById('eliminarForm');
-        form.action = /*[[@{/atributos/eliminar/}]]*/ '' + id;
+        form.action = /*[[@{/servicios/eliminar/}]]*/ '' + id;
         modal.show();
     }
 

@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/sdn/atributos")
+@RequestMapping("/sdn/servicios")
 @Slf4j
-public class AtributosController {
+public class ServiciosController {
 
     @Autowired
     private ServicioRepository servicioRepository;
@@ -33,29 +33,29 @@ public class AtributosController {
     @Autowired
     private ServicioPorDispositivoRepository servicioPorDispositivoRepository;
 
-    // Listar atributos
+    // Listar servicios
     @GetMapping("")
-    public String listarAtributos(Model model) {
-        log.info("Listando todos los atributos");
-        model.addAttribute("atributos", servicioRepository.findAll());
-        model.addAttribute("active", "atributos");
-        return "atributos/lista_atributos";
+    public String listarServicios(Model model) {
+        log.info("Listando todos los servicios");
+        model.addAttribute("servicios", servicioRepository.findAll());
+        model.addAttribute("active", "servicios");
+        return "servicios/lista_servicios";
     }
 
     // Mostrar formulario de nuevo servicio
     @GetMapping("/nuevo")
     public String mostrarFormularioNuevo(Model model) {
-        log.info("Mostrando formulario de nuevo atributo");
+        log.info("Mostrando formulario de nuevo servicio");
         model.addAttribute("servicio", new Servicio());
         model.addAttribute("usuarios", usuarioRepository.findAll());
         model.addAttribute("active", "servicios");
-        return "atributos/formulario_servicios";
+        return "servicios/formulario_servicios";
     }
 
     // Mostrar formulario de edición
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
-        log.info("Mostrando formulario de edición para atributo ID: {}", id);
+        log.info("Mostrando formulario de edición para servicio ID: {}", id);
 
         try {
             Servicio servicio = servicioRepository.findById(id)
@@ -71,14 +71,14 @@ public class AtributosController {
         }
     }
 
-    // Guardar atributo (crear/actualizar)
+    // Guardar servicio (crear/actualizar)
     @PostMapping("/guardar")
     public String guardarServicio(@Valid Servicio servicio,
                                   BindingResult result,
                                   @RequestParam(name = "usuarioCreadorId", required = false) Integer usuarioCreadorId,
                                   Model model,
                                   RedirectAttributes redirectAttributes) {
-        log.info("Guardando atributo: {}", servicio);
+        log.info("Guardando servicio: {}", servicio);
 
         if (result.hasErrors()) {
             model.addAttribute("usuarios", usuarioRepository.findAll());
@@ -109,7 +109,7 @@ public class AtributosController {
             redirectAttributes.addFlashAttribute("mensaje", "Servicio guardado exitosamente");
 
         } catch (Exception e) {
-            log.error("Error al guardar atributo: {}", e.getMessage());
+            log.error("Error al guardar servicio: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Error al guardar el servicio");
         }
 
@@ -141,9 +141,9 @@ public class AtributosController {
 
         try {
             Servicio servicio = servicioRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Atributo no encontrado"));
+                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
-            // Verificar si el atributo está siendo usado por algún dispositivo
+            // Verificar si el servicio está siendo usado por algún dispositivo
             List<ServicioPorDispositivo> asociaciones = servicioPorDispositivoRepository
                     .findByServicioId(servicio.getId());
 

@@ -87,7 +87,7 @@ public class DispositivosController {
         }
 
         try {
-            // Si hay un usuario seleccionado, buscar y asignar aaaah
+            // Si hay un usuario seleccionado, buscar y asignar
             if (usuarioId != null) {
                 Usuario usuario = usuarioRepository.findById(usuarioId)
                         .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
@@ -158,7 +158,7 @@ public class DispositivosController {
         return "redirect:/dispositivos";
     }
 
-    // Agregar atributo al dispositivo
+    // Agregar servicio (antes era atributo) al dispositivo
     @PostMapping("/agregarServicio")
     public String agregarServicio(@RequestParam Integer idDispositivo,
                                   @RequestParam Integer idServicio,

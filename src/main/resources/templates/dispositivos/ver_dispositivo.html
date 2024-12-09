@@ -125,12 +125,12 @@
                 </div>
             </div>
 
-            <!-- Card de Atributos -->
+            <!-- Card de Servicios -->
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>
-                        Atributos Asignados
+                        Servicios Asignados
                     </h5>
                     <button class="btn btn-light btn-sm"
                             data-bs-toggle="modal"
@@ -141,7 +141,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive" th:if="${!dispositivo.atributoPorDispositivos.empty}">
-                        <table class="table table-hover" id="atributosTable">
+                        <table class="table table-hover" id="serviciosTable">
                             <thead>
                             <tr>
                                 <th>ID</th>
@@ -177,7 +177,7 @@
                     <div th:if="${dispositivo.atributoPorDispositivos.empty}"
                          class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
-                        Este dispositivo no tiene atributos asignados
+                        Este dispositivo no tiene servicios asignados
                     </div>
                 </div>
             </div>
@@ -200,7 +200,7 @@
                         <label for="idAtributo" class="form-label">Atributo</label>
                         <select class="form-select" id="idAtributo" name="idAtributo" required>
                             <option value="">Seleccione un atributo</option>
-                            <option th:each="attr : ${atributosDisponibles}"
+                            <option th:each="attr : ${serviciosDisponibles}"
                                     th:value="${attr.id}"
                                     th:text="${attr.nombre}">
                             </option>
@@ -252,7 +252,7 @@
 <!-- Scripts específicos -->
 <script th:inline="javascript">
     $(document).ready(function() {
-        const table = $('#atributosTable').DataTable({
+        const table = $('#serviciosTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
             },
