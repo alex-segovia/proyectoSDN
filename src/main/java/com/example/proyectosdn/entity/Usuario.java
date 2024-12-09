@@ -24,11 +24,10 @@ public class Usuario {
     @Column(name = "username", nullable = false, length = 100)
     private String username;
 
-    @NotBlank(message = "El attribute es requerido")
-    @Column(name = "attribute", nullable = false, length = 64)
+    @Column(name = "attribute", length = 64)
     private String attribute;
 
-    @Column(name = "op", nullable = false, length = 2)
+    @Column(name = "op", length = 2)
     private String op = "=";  // Por defectoo
 
     @NotBlank(message = "El value es requerido")
@@ -55,8 +54,7 @@ public class Usuario {
     @Column(name = "dni", nullable = false, length = 8)
     private String dni;
 
-    @NotNull(message = "El estado es requerido")
-    @Column(name = "estado", nullable = false)
+    @Column(name = "estado")
     private Integer estado;
 
     @OneToMany(mappedBy = "usuario")

@@ -27,7 +27,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/usuarios/guardar}"
+                    <form th:action="@{/sdn/usuarios/guardar}"
                           th:object="${usuario}"
                           method="POST"
                           class="needs-validation"
@@ -162,6 +162,7 @@
                                         <option value="PROFESOR">Profesor</option>
                                         <option value="JEFE_PRACTICA">Jefe de Práctica</option>
                                         <option value="ALUMNO">Alumno</option>
+                                        <option value="TRABAJADOR">Trabajador</option>
                                     </select>
                                     <div class="invalid-feedback">
                                         Por favor seleccione un rol
@@ -184,10 +185,6 @@
                                     </select>
                                 </div>
                             </div>
-
-                            <!-- Campos ocultos para RADIUS -->
-                            <input type="hidden" th:field="*{attribute}" value="Cleartext-Password">
-                            <input type="hidden" th:field="*{op}" value="=">
                         </div>
 
                         <!-- Botones de Acción -->

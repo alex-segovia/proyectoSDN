@@ -102,8 +102,7 @@ public class UsuariosController {
                 model.addAttribute("active", "usuarios");
                 return "usuarios/formulario_usuarios";
             }
-
-            usuarioRepository.save(usuario);
+            usuarioRepository.registrarUsuario(usuario.getUsername(),usuario.getValue(),usuario.getNombres(),usuario.getApellidoPaterno(),usuario.getApellidoMaterno(),usuario.getRol(),usuario.getDni());
             redirectAttributes.addFlashAttribute("mensaje", "Usuario guardado exitosamente");
 
         } catch (Exception e) {
@@ -111,7 +110,7 @@ public class UsuariosController {
             redirectAttributes.addFlashAttribute("error", "Error al guardar el usuario");
         }
 
-        return "redirect:/usuarios";
+        return "redirect:/sdn/auth/";
     }
 
     // Ver detalles del usuario
