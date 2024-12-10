@@ -19,7 +19,7 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Gestión de Servicios</h2>
-        <a th:href="@{/templates/servicios/nuevo}" class="btn btn-primary">
+        <a th:href="@{/sdn/servicios/nuevo}" class="btn btn-primary">
             <i class='bx bx-plus'></i> Nuevo Servicios
         </a>
     </div>
@@ -69,12 +69,12 @@
                     </td>
                     <td>
                         <div class="btn-group">
-                            <a th:href="@{/templates/servicios/ver/{id}(id=${servicio.id})}"
+                            <a th:href="@{/sdn/servicios/ver/{id}(id=${servicio.id})}"
                                class="btn btn-info btn-sm"
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/templates/servicios/editar/{id}(id=${servicio.id})}"
+                            <a th:href="@{/sdn/servicios/editar/{id}(id=${servicio.id})}"
                                class="btn btn-warning btn-sm"
                                title="Editar">
                                 <i class='bx bx-edit'></i>
@@ -170,7 +170,7 @@
     function confirmarEliminar(id) {
         const modal = new bootstrap.Modal(document.getElementById('eliminarModal'));
         const form = document.getElementById('eliminarForm');
-        form.action = /*[[@{/servicios/eliminar/}]]*/ '' + id;
+        form.action = /*[[@{/sdn/servicios/eliminar/}]]*/ '' + id;
         modal.show();
     }
 

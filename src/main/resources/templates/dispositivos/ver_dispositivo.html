@@ -27,12 +27,12 @@
                         Información del Dispositivo
                     </h5>
                     <div>
-                        <a th:href="@{/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                        <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
                            class="btn btn-light btn-sm">
                             <i class='bx bx-edit me-1'></i>
                             Editar
                         </a>
-                        <a th:href="@{/dispositivos}"
+                        <a th:href="@{/sdn/dispositivos}"
                            class="btn btn-light btn-sm ms-2">
                             <i class='bx bx-arrow-back me-1'></i>
                             Volver
@@ -193,7 +193,7 @@
                 <h5 class="modal-title">Agregar Atributo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/dispositivos/agregarAtributo}" method="POST">
+            <form th:action="@{/sdn/dispositivos/agregarAtributo}" method="POST">
                 <input type="hidden" name="idDispositivo" th:value="${dispositivo.id}">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -268,7 +268,7 @@
         const modal = new bootstrap.Modal(document.getElementById('eliminarAtributoModal'));
         const form = document.getElementById('eliminarAtributoForm');
         const dispositivoId = /*[[${dispositivo.id}]]*/ '';
-        form.action = '/dispositivos/' + dispositivoId + '/eliminarAtributo/' + id;
+        form.action = '/sdn/dispositivos/' + dispositivoId + '/eliminarAtributo/' + id;
         modal.show();
     }
 </script>

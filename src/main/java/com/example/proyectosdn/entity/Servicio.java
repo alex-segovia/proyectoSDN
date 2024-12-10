@@ -35,7 +35,7 @@ public class Servicio {
     @Column(name = "estado", nullable = false)
     private Integer estado;
 
-    @OneToMany(mappedBy = "atributo")
+    @OneToMany(mappedBy = "servicio")
     private List<ServicioPorDispositivo> servicioPorDispositivos = new ArrayList<>();
 
 }
