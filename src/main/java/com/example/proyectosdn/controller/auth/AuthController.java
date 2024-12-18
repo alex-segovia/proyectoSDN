@@ -1,11 +1,12 @@
 package com.example.proyectosdn.controller.auth;
 
+import com.example.proyectosdn.entity.Dispositivo;
+import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.SesionActiva;
 import com.example.proyectosdn.entity.Usuario;
+import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.extra.Utilities;
-import com.example.proyectosdn.repository.ServicioRepository;
-import com.example.proyectosdn.repository.SesionActivaRepository;
-import com.example.proyectosdn.repository.UsuarioRepository;
+import com.example.proyectosdn.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -27,7 +28,9 @@ import org.tinyradius.packet.RadiusPacket;
 import org.tinyradius.util.RadiusClient;
 
 import java.net.http.HttpResponse;
+
 import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/sdn/auth")
@@ -44,34 +47,123 @@ public class AuthController {
     private SesionActivaRepository sesionActivaRepository;
     @Autowired
     private ServicioRepository servicioRepository;
+    @Autowired
+    private DispositivoRepository dispositivoRepository;
+    @Autowired
+    private ConexionRepository conexionRepository;
+    @Autowired
+    private HttpClientService httpClientService;
+
+    @PostMapping("/registrarNuevaConexion")
+    public ResponseEntity<Map<String,Object>> registrarNuevaConexion(@RequestParam("macOrigen")String macOrigen,@RequestParam("macDestino")String macDestino,@RequestParam("idVlan")Integer idVlan,@RequestParam("puerto")String puertoStr,@RequestParam("timeout")Integer timeout){
+        System.out.println("Método: registrarNuevaConexion. Datos: macOrigen: "+macOrigen+", macDestino: "+macDestino+", idVlan: "+idVlan+", puertoStr: "+puertoStr+", timeout: "+timeout);
+        Map<String,Object>responseMap=new HashMap<>();
+        Integer puerto=puertoStr.equals("null")?null:Integer.parseInt(puertoStr);
+        if(macOrigen!=null&&!macOrigen.isBlank()&&macDestino!=null&&!macDestino.isBlank()&&idVlan!=null&&idVlan!=0){
+            conexionRepository.registrarConexion(macOrigen,macDestino,idVlan,puerto,Utilities.obtenerFechaHoraActual(),timeout);
+            responseMap.put("status","success");
+            System.out.println("Success");
+            return ResponseEntity.ok(responseMap);
+        }else {
+            System.out.println("Error: Algún/os dato/s no es/son válido/s.");
+            responseMap.put("status", "error");
+            responseMap.put("content", "Algún/os dato/s no es/son válido/s.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+        }
+    }
+
+    @PostMapping("/registrarDispositivoInvitado")
+    public ResponseEntity<Map<String,Object>> registrarDispositivo(@RequestParam("mac")String mac){
+        System.out.println("Método: registrarDispositivo. Datos: mac: "+mac);
+        Map<String,Object>responseMap=new HashMap<>();
+        if(mac!=null&&!mac.isBlank()){
+            Dispositivo dispositivo=new Dispositivo();
+            dispositivo.setMac(mac);
+            dispositivo.setAutenticado(1);
+            dispositivo.setEstado(1);
+            dispositivoRepository.save(dispositivo);
+            responseMap.put("status","success");
+            System.out.println("Success");
+            return ResponseEntity.ok(responseMap);
+        }else {
+            responseMap.put("status", "error");
+            responseMap.put("content", "El dispositivo no cuenta con dirección MAC");
+            System.out.println("Error: El dispositivo no cuenta con dirección MAC");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+        }
+    }
+
+    @PostMapping("/obtenerDispositivo")
+    public ResponseEntity<Map<String,Object>> obtenerDispositivo(@RequestParam("mac") String mac) {
+        System.out.println("Método: obtenerDispositivo. Datos: mac: "+mac);
+        Map<String,Object>responseMap=new HashMap<>();
+        Dispositivo dispositivo= dispositivoRepository.obtenerDispositivo(mac);
+        Map<String,Object> content=new HashMap<>();
+        if(dispositivo==null){
+            responseMap.put("status","error");
+            System.out.println("Error: No se encontró el dispositivo");
+        }else {
+            responseMap.put("status","success");
+            content.put("id",dispositivo.getId());
+            content.put("nombre",dispositivo.getNombre());
+            content.put("usuario",dispositivo.getUsuario());
+            content.put("autenticado",dispositivo.getAutenticado());
+            content.put("estado",dispositivo.getEstado());
+            System.out.println("Success");
+
+            responseMap.put("content",content);
+        }
+        return ResponseEntity.ok(responseMap);
+    }
 
     @PostMapping("/obtenerVinculoTerminales")
-    public ResponseEntity<HashMap<String,Object>> obtenerVinculoTerminales(@RequestParam("macOrigen") String macOrigen, @RequestParam("macDestino") String macDestino) {
-        HashMap<String,Object>responseMap=new HashMap<>();
-        Integer usuarioAutenticado=sesionActivaRepository.usuarioDeDispositivoEstaEnSesion(macOrigen);
-        Integer servicioEnComun=servicioRepository.obtenerServicioEnComun(macOrigen,macDestino);
-        if(servicioEnComun==null){
-            responseMap.put("status","error");
-            responseMap.put("content","No existe algún servicio asociado a los dispositivos en común.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
-        }
-        if(usuarioAutenticado==null){
-            responseMap.put("status","error");
-            responseMap.put("content","El usuario que ostenta el dispositivo no está autenticado");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
-        }
-        HashMap<String,Object> content=new HashMap<>();
+    public ResponseEntity<Map<String,Object>> obtenerVinculoTerminales(@RequestParam("macOrigen") String macOrigen, @RequestParam("macDestino") String macDestino) {
+        System.out.println("Método: obtenerVinculoTerminales. Datos: macOrigen: "+macOrigen+", macDestino: "+macDestino);
+        Map<String,Object>responseMap=new HashMap<>();
+        Servicio servicioEnComun=servicioRepository.obtenerServicioEnComun(macOrigen,macDestino);
+        Map<String,Object> content=new HashMap<>();
         content.put("servicio",servicioEnComun);
+        System.out.println("Success");
+
         responseMap.put("status","success");
         responseMap.put("content",content);
         return ResponseEntity.ok(responseMap);
     }
 
+    @PostMapping("/verificarUsuarioEnSesion")
+    public ResponseEntity<Map<String,Object>> verificarUsuarioEnSesion(@RequestParam("username") String username) {
+        System.out.println("Método: verificarUsuarioEnSesion. Datos: username: "+username);
+        Map<String,Object>responseMap=new HashMap<>();
+        Integer idSesion=sesionActivaRepository.idSesionActivaPorUsuario(username);
+        responseMap.put("status",(idSesion==null?"error":"success"));
+        Map<String,Object> content=new HashMap<>();
+        System.out.println("Success");
+
+        content.put("idSesion",idSesion);
+        responseMap.put("content",content);
+        return ResponseEntity.ok(responseMap);
+    }
+
+
+
     @PostMapping("/autenticar")
-    public ResponseEntity<HashMap<String,Object>> autenticar(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletRequest httpRequest) {
-        HashMap<String,Object>responseMap=new HashMap<>();
+    public ResponseEntity<Map<String,Object>> autenticar(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletRequest httpRequest) {
+        Map<String,Object>responseMap=new HashMap<>();
         try {
             String ipAdd=httpRequest.getRemoteAddr();
+
+            String mac=httpClientService.obtenerMacPorIp(ipAdd);
+            String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
+            if(usernameNuevo!=null){
+                if(!usernameNuevo.equals(username)){
+                    System.out.println("Asociación de dispositivo fallida.");
+                    responseMap.put("status","error");
+                    responseMap.put("content","El dispositivo desde el que te estás intentado autenticar ya está registrado por otro usuario.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+                }
+            }else{
+                dispositivoRepository.actualizarIdUsuario(username,mac);
+            }
             RadiusClient client = new RadiusClient(radiusServer, sharedSecret);
             client.setAuthPort(authPort);
             AccessRequest request = new AccessRequest(username, password);
@@ -93,9 +185,10 @@ public class AuthController {
                     sesionActiva.setActive(true);
                     sesionActivaRepository.save(sesionActiva);
                 }
+
                 System.out.println("Authentication successful");
                 responseMap.put("status","success");
-                responseMap.put("IP",ipAdd);
+                responseMap.put("ip",ipAdd);
                 responseMap.put("content",true);
                 return ResponseEntity.ok(responseMap);
             } else if (response.getPacketType() == RadiusPacket.ACCESS_REJECT) {
@@ -107,7 +200,7 @@ public class AuthController {
                 System.out.println("Unexpected response type: " + response.getPacketType());
                 responseMap.put("status","error");
                 responseMap.put("content",response.getPacketType());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
             }
         } catch (Exception e) {
             e.printStackTrace();

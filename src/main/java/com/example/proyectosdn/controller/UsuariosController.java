@@ -47,9 +47,9 @@ public class UsuariosController {
     public String mostrarFormularioNuevo(Model model) {
         log.info("Mostrando formulario de nuevo usuario");
         Usuario usuario = new Usuario();
-        // Valores por defecto para RADIUS
-        usuario.setAttribute("Cleartext-Password");
-        usuario.setOp("=");
+
+        usuario.setAttribute("SHA256-Password");
+        usuario.setOp(":=");
 
         model.addAttribute("usuario", usuario);
         model.addAttribute("active", "usuarios");

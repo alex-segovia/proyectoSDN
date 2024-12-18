@@ -32,7 +32,7 @@ public class Dispositivo {
     private String mac;
 
     @Column(name = "autenticado", nullable = false)
-    private Boolean autenticado;
+    private Integer autenticado;
 
     @Column(name = "estado", nullable = false)
     private Integer estado;
