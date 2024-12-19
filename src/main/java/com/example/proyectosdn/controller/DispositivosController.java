@@ -57,7 +57,7 @@ public class DispositivosController {
             model.addAttribute("dispositivos", dispositivoRepository.findAll());
         }else{
             log.info("Listando los dispositivos del usuario");
-            model.addAttribute("dispositivos", dispositivoRepository.findById(sesionActivaRepository.userIdPorIp(ipAdd)));
+            model.addAttribute("dispositivos", dispositivoRepository.findByUsuarioId(sesionActivaRepository.userIdPorIp(ipAdd)));
         }
 
         model.addAttribute("active", "dispositivos");
