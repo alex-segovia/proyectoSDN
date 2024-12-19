@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,11 +33,11 @@ public class Dispositivo {
     private String mac;
 
     @Column(name = "autenticado", nullable = false)
-    private Boolean autenticado;
+    private Integer autenticado;
 
     @Column(name = "estado", nullable = false)
     private Integer estado;
 
     @OneToMany(mappedBy = "dispositivo")
-    private List<AtributoPorDispositivo> atributoPorDispositivos;
+    private List<ServicioPorDispositivo> servicioPorDispositivos = new ArrayList<>();
 }

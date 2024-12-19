@@ -1,14 +1,12 @@
 package com.example.proyectosdn.controller;
 
-import com.example.proyectosdn.entity.Atributo;
-import com.example.proyectosdn.entity.AtributoPorDispositivo;
 import com.example.proyectosdn.entity.Dispositivo;
+import com.example.proyectosdn.entity.Servicio;
+import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
-import com.example.proyectosdn.repository.AtributoPorDispositivoRepository;
-import com.example.proyectosdn.repository.AtributoRepository;
-import com.example.proyectosdn.repository.DispositivoRepository;
-import com.example.proyectosdn.repository.UsuarioRepository;
+import com.example.proyectosdn.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +23,8 @@ import java.util.Optional;
 @RequestMapping("/sdn/dispositivos")
 @Slf4j
 public class DispositivosController {
+    @Autowired
+    private SesionActivaRepository sesionActivaRepository;
 
     @Autowired
     private DispositivoRepository dispositivoRepository;
@@ -33,16 +33,33 @@ public class DispositivosController {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private AtributoRepository atributoRepository;
+    private ServicioRepository servicioRepository;
 
     @Autowired
-    private AtributoPorDispositivoRepository atributoPorDispositivoRepository;
+    private ServicioPorDispositivoRepository servicioPorDispositivoRepository;
 
     // Listar dispositivos
     @GetMapping("")
-    public String listarDispositivos(Model model) {
-        log.info("Listando todos los dispositivos");
-        model.addAttribute("dispositivos", dispositivoRepository.findAll());
+    public String listarDispositivos(Model model, HttpServletRequest httpRequest) {
+
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        }
+
+        String rolUsuario = sesionActivaRepository.userRolPorIp(ipAdd);
+
+        if(rolUsuario.equals("Superadmin")){
+            log.info("Listando todos los dispositivos");
+            model.addAttribute("dispositivos", dispositivoRepository.findAll());
+        }else{
+            log.info("Listando los dispositivos del usuario");
+            model.addAttribute("dispositivos", dispositivoRepository.findByUsuarioId(sesionActivaRepository.userIdPorIp(ipAdd)));
+        }
+
         model.addAttribute("active", "dispositivos");
         return "dispositivos/lista_dispositivos";
     }
@@ -87,7 +104,7 @@ public class DispositivosController {
         }
 
         try {
-            // Si hay un usuario seleccionado, buscar y asignar aaaah
+            // Si hay un usuario seleccionado, buscar y asignar
             if (usuarioId != null) {
                 Usuario usuario = usuarioRepository.findById(usuarioId)
                         .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
@@ -125,13 +142,13 @@ public class DispositivosController {
         Dispositivo dispositivo = dispositivoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
 
-        List<Atributo> atributosDisponibles = atributoRepository.findAll();
-        atributosDisponibles.removeIf(atributo ->
-                dispositivo.getAtributoPorDispositivos().stream()
-                        .anyMatch(apd -> apd.getAtributo().getId().equals(atributo.getId())));
+        List<Servicio> serviciosDisponibles = servicioRepository.findAll();
+        serviciosDisponibles.removeIf(servicio ->
+                dispositivo.getServicioPorDispositivos().stream()
+                        .anyMatch(apd -> apd.getServicio().getId().equals(servicio.getId())));
 
         model.addAttribute("dispositivo", dispositivo);
-        model.addAttribute("atributosDisponibles", atributosDisponibles);
+        model.addAttribute("serviciosDisponibles", serviciosDisponibles);
         model.addAttribute("active", "dispositivos");
         return "dispositivos/ver_dispositivo";
     }
@@ -145,8 +162,8 @@ public class DispositivosController {
             Dispositivo dispositivo = dispositivoRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
 
-            // Eliminar primero las relaciones con atributos
-            atributoPorDispositivoRepository.deleteAll(dispositivo.getAtributoPorDispositivos());
+            // Eliminar primero las relaciones con servicios
+            servicioPorDispositivoRepository.deleteAll(dispositivo.getServicioPorDispositivos());
             dispositivoRepository.delete(dispositivo);
 
             redirectAttributes.addFlashAttribute("mensaje", "Dispositivo eliminado exitosamente");
@@ -158,55 +175,55 @@ public class DispositivosController {
         return "redirect:/dispositivos";
     }
 
-    // Agregar atributo al dispositivo
-    @PostMapping("/agregarAtributo")
-    public String agregarAtributo(@RequestParam Integer idDispositivo,
-                                  @RequestParam Integer idAtributo,
+    // Agregar servicio (antes era atributo) al dispositivo
+    @PostMapping("/agregarServicio")
+    public String agregarServicio(@RequestParam Integer idDispositivo,
+                                  @RequestParam Integer idServicio,
                                   @RequestParam String motivo,
                                   RedirectAttributes redirectAttributes) {
-        log.info("Agregando atributo {} al dispositivo {}", idAtributo, idDispositivo);
+        log.info("Agregando servicio {} al dispositivo {}", idServicio, idDispositivo);
 
         try {
             Dispositivo dispositivo = dispositivoRepository.findById(idDispositivo)
                     .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
 
-            Atributo atributo = atributoRepository.findById(idAtributo)
-                    .orElseThrow(() -> new EntityNotFoundException("Atributo no encontrado"));
+            Servicio servicio = servicioRepository.findById(idServicio)
+                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
-            AtributoPorDispositivo apd = new AtributoPorDispositivo();
-            apd.setDispositivo(dispositivo);
-            apd.setAtributo(atributo);
-            apd.setMotivo(motivo);
-            apd.setEstado(1);
+            ServicioPorDispositivo spd = new ServicioPorDispositivo();
+            spd.setDispositivo(dispositivo);
+            spd.setServicio(servicio);
+            spd.setMotivo(motivo);
+            spd.setEstado(1);
 
-            atributoPorDispositivoRepository.save(apd);
-            redirectAttributes.addFlashAttribute("mensaje", "Atributo agregado exitosamente");
+            servicioPorDispositivoRepository.save(spd);
+            redirectAttributes.addFlashAttribute("mensaje", "Servicio agregado exitosamente");
 
         } catch (Exception e) {
-            log.error("Error al agregar atributo: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "No se pudo agregar el atributo");
+            log.error("Error al agregar servicio: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "No se pudo agregar el servicio");
         }
 
         return "redirect:/dispositivos/ver/" + idDispositivo;
     }
 
-    // Eliminar atributo del dispositivo
-    @PostMapping("/{idDispositivo}/eliminarAtributo/{idAtributo}")
-    public String eliminarAtributo(@PathVariable Integer idDispositivo,
-                                   @PathVariable Integer idAtributo,
+    // Eliminar servicio del dispositivo
+    @PostMapping("/{idDispositivo}/eliminarServicio/{idServicio}")
+    public String eliminarServicio(@PathVariable Integer idDispositivo,
+                                   @PathVariable Integer idServicio,
                                    RedirectAttributes redirectAttributes) {
-        log.info("Eliminando atributo {} del dispositivo {}", idAtributo, idDispositivo);
+        log.info("Eliminando servicio {} del dispositivo {}", idServicio, idDispositivo);
 
         try {
-            AtributoPorDispositivo apd = atributoPorDispositivoRepository.findById(idAtributo)
+            ServicioPorDispositivo apd = servicioPorDispositivoRepository.findById(idServicio)
                     .orElseThrow(() -> new EntityNotFoundException("Relación no encontrada"));
 
-            atributoPorDispositivoRepository.delete(apd);
-            redirectAttributes.addFlashAttribute("mensaje", "Atributo eliminado exitosamente");
+            servicioPorDispositivoRepository.delete(apd);
+            redirectAttributes.addFlashAttribute("mensaje", "Servicio eliminado exitosamente");
 
         } catch (Exception e) {
-            log.error("Error al eliminar atributo: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el atributo");
+            log.error("Error al eliminar servicio: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el servicio");
         }
 
         return "redirect:/dispositivos/ver/" + idDispositivo;

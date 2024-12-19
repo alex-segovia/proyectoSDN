@@ -19,7 +19,7 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Gestión de Dispositivos</h2>
-        <a th:href="@{/dispositivos/nuevo}" class="btn btn-primary">
+        <a th:href="@{/sdn/dispositivos/nuevo}" class="btn btn-primary">
             <i class='bx bx-plus'></i> Nuevo Dispositivo
         </a>
     </div>
@@ -73,12 +73,12 @@
                     </td>
                     <td>
                         <div class="btn-group">
-                            <a th:href="@{/dispositivos/ver/{id}(id=${dispositivo.id})}"
+                            <a th:href="@{/sdn/dispositivos/ver/{id}(id=${dispositivo.id})}"
                                class="btn btn-info btn-sm"
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                            <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
                                class="btn btn-warning btn-sm"
                                title="Editar">
                                 <i class='bx bx-edit'></i>
@@ -127,7 +127,7 @@
     $(document).ready(function() {
         const table = $('#dispositivosTable').DataTable({
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                url: '/sdn/json/es.json'
             },
             responsive: true,
             dom: 'Bfrtip',
@@ -173,7 +173,7 @@
     function confirmarEliminar(id) {
         const modal = new bootstrap.Modal(document.getElementById('eliminarModal'));
         const form = document.getElementById('eliminarForm');
-        form.action = /*[[@{/dispositivos/eliminar/}]]*/ '' + id;
+        form.action = /*[[@{/sdn/dispositivos/eliminar/}]]*/ '' + id;
         modal.show();
     }
 
@@ -183,7 +183,61 @@
             $(this).remove();
         });
     }, 5000);
-</script>
 
+    function confirmarCerrarSesion() {
+        Swal.fire({
+            title: 'Cierre de sesión',
+            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Este dispositivo',
+            cancelButtonText: 'Todos los dispositivos',
+            reverseButtons: true, // Invierte el orden de los botones
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Usuario eligió "Este dispositivo"
+                let data = {
+                    "type" : "one",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Usuario eligió "Todos los dispositivos"
+                let data = {
+                    "type" : "all",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+            }
+        });
+    }
+</script>
 </body>
 </html>

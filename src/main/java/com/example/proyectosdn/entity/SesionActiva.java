@@ -38,4 +38,8 @@ public class SesionActiva {
     @Column(name = "active")
     private Boolean active;
 
+    @NotNull
+    @Column(name = "ip")
+    private String ip;
+
 }

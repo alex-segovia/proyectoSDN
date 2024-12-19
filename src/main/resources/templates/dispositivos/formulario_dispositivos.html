@@ -27,7 +27,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/dispositivos/guardar}"
+                    <form th:action="@{/sdn/dispositivos/guardar}"
                           th:object="${dispositivo}"
                           method="POST"
                           class="needs-validation"
@@ -123,6 +123,7 @@
                                             <input class="form-check-input"
                                                    type="checkbox"
                                                    th:field="*{autenticado}"
+                                                   value="true"
                                                    role="switch">
                                             <label class="form-check-label"
                                                    for="autenticado">Dispositivo autenticado</label>
@@ -137,7 +138,7 @@
                             <div class="col-12">
                                 <hr>
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a th:href="@{/dispositivos}"
+                                    <a th:href="@{/sdn/dispositivos}"
                                        class="btn btn-secondary">
                                         <i class='bx bx-arrow-back me-1'></i>
                                         Cancelar
@@ -193,6 +194,62 @@
             }
 
             e.target.value = formattedValue.toUpperCase();
+        });
+    }
+
+    function confirmarCerrarSesion() {
+        Swal.fire({
+            title: 'Cierre de sesión',
+            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Este dispositivo',
+            cancelButtonText: 'Todos los dispositivos',
+            reverseButtons: true, // Invierte el orden de los botones
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Usuario eligió "Este dispositivo"
+                let data = {
+                    "type" : "one",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Usuario eligió "Todos los dispositivos"
+                let data = {
+                    "type" : "all",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    contentType: ""
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+            }
         });
     }
 </script>

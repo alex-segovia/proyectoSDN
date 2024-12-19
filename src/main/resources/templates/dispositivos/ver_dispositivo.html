@@ -27,12 +27,12 @@
                         Información del Dispositivo
                     </h5>
                     <div>
-                        <a th:href="@{/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                        <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
                            class="btn btn-light btn-sm">
                             <i class='bx bx-edit me-1'></i>
                             Editar
                         </a>
-                        <a th:href="@{/dispositivos}"
+                        <a th:href="@{/sdn/dispositivos}"
                            class="btn btn-light btn-sm ms-2">
                             <i class='bx bx-arrow-back me-1'></i>
                             Volver
@@ -125,12 +125,12 @@
                 </div>
             </div>
 
-            <!-- Card de Atributos -->
+            <!-- Card de Servicios -->
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>
-                        Atributos Asignados
+                        Servicios Asignados
                     </h5>
                     <button class="btn btn-light btn-sm"
                             data-bs-toggle="modal"
@@ -141,7 +141,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive" th:if="${!dispositivo.atributoPorDispositivos.empty}">
-                        <table class="table table-hover" id="atributosTable">
+                        <table class="table table-hover" id="serviciosTable">
                             <thead>
                             <tr>
                                 <th>ID</th>
@@ -177,7 +177,7 @@
                     <div th:if="${dispositivo.atributoPorDispositivos.empty}"
                          class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
-                        Este dispositivo no tiene atributos asignados
+                        Este dispositivo no tiene servicios asignados
                     </div>
                 </div>
             </div>
@@ -193,14 +193,14 @@
                 <h5 class="modal-title">Agregar Atributo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/dispositivos/agregarAtributo}" method="POST">
+            <form th:action="@{/sdn/dispositivos/agregarAtributo}" method="POST">
                 <input type="hidden" name="idDispositivo" th:value="${dispositivo.id}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="idAtributo" class="form-label">Atributo</label>
                         <select class="form-select" id="idAtributo" name="idAtributo" required>
                             <option value="">Seleccione un atributo</option>
-                            <option th:each="attr : ${atributosDisponibles}"
+                            <option th:each="attr : ${serviciosDisponibles}"
                                     th:value="${attr.id}"
                                     th:text="${attr.nombre}">
                             </option>
@@ -252,9 +252,9 @@
 <!-- Scripts específicos -->
 <script th:inline="javascript">
     $(document).ready(function() {
-        const table = $('#atributosTable').DataTable({
+        const table = $('#serviciosTable').DataTable({
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                url: '/sdn/json/es.json'
             },
             pageLength: 5,
             lengthMenu: [5, 10, 25]
@@ -268,8 +268,63 @@
         const modal = new bootstrap.Modal(document.getElementById('eliminarAtributoModal'));
         const form = document.getElementById('eliminarAtributoForm');
         const dispositivoId = /*[[${dispositivo.id}]]*/ '';
-        form.action = '/dispositivos/' + dispositivoId + '/eliminarAtributo/' + id;
+        form.action = '/sdn/dispositivos/' + dispositivoId + '/eliminarAtributo/' + id;
         modal.show();
+    }
+
+    function confirmarCerrarSesion() {
+        Swal.fire({
+            title: 'Cierre de sesión',
+            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Este dispositivo',
+            cancelButtonText: 'Todos los dispositivos',
+            reverseButtons: true, // Invierte el orden de los botones
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Usuario eligió "Este dispositivo"
+                let data = {
+                    "type" : "one",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Usuario eligió "Todos los dispositivos"
+                let data = {
+                    "type" : "all",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+            }
+        });
     }
 </script>
 </body>

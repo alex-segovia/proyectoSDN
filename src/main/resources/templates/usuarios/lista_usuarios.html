@@ -17,12 +17,6 @@
 
 <!-- Container Principal -->
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gestión de Usuarios</h2>
-        <a th:href="@{/usuarios/nuevo}" class="btn btn-primary">
-            <i class='bx bx-user-plus'></i> Nuevo Usuario
-        </a>
-    </div>
 
     <!-- Alertas -->
     <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -70,16 +64,16 @@
                     </td>
                     <td>
                         <div class="btn-group">
-                            <a th:href="@{/usuarios/ver/{id}(id=${usuario.id})}"
+                            <a th:href="@{/sdn/usuarios/ver/{id}(id=${usuario.id})}"
                                class="btn btn-info btn-sm"
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/usuarios/editar/{id}(id=${usuario.id})}"
+                            <!--<a th:href="@{/sdn/usuarios/editar/{id}(id=${usuario.id})}"
                                class="btn btn-warning btn-sm"
                                title="Editar">
                                 <i class='bx bx-edit'></i>
-                            </a>
+                            </a>-->
                             <button type="button"
                                     class="btn btn-danger btn-sm"
                                     title="Eliminar"
@@ -105,7 +99,7 @@
             </div>
             <div class="modal-body">
                 ¿Está seguro que desea eliminar este usuario?
-                Esta acción también afectará a todos sus dispositivos y atributos relacionados.
+                Esta acción también afectará a todos sus dispositivos y servicios relacionados.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -125,7 +119,7 @@
     $(document).ready(function() {
         const table = $('#usuariosTable').DataTable({
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                url: '/sdn/json/es.json'
             },
             responsive: true,
             dom: 'Bfrtip',
@@ -171,7 +165,7 @@
     function confirmarEliminar(id) {
         const modal = new bootstrap.Modal(document.getElementById('eliminarModal'));
         const form = document.getElementById('eliminarForm');
-        form.action = /*[[@{/usuarios/eliminar/}]]*/ '' + id;
+        form.action = /*[[@{/sdn/usuarios/eliminar/}]]*/ '' + id;
         modal.show();
     }
 
@@ -181,6 +175,61 @@
             $(this).remove();
         });
     }, 5000);
+
+    function confirmarCerrarSesion() {
+        Swal.fire({
+            title: 'Cierre de sesión',
+            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Este dispositivo',
+            cancelButtonText: 'Todos los dispositivos',
+            reverseButtons: true, // Invierte el orden de los botones
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Usuario eligió "Este dispositivo"
+                let data = {
+                    "type" : "one",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Usuario eligió "Todos los dispositivos"
+                let data = {
+                    "type" : "all",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/login";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/login";
+                    }
+                });
+            }
+        });
+    }
 </script>
 </body>
 </html>

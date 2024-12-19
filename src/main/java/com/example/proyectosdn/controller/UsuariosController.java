@@ -1,10 +1,10 @@
 package com.example.proyectosdn.controller;
 
-import com.example.proyectosdn.entity.Atributo;
 import com.example.proyectosdn.entity.Dispositivo;
+import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.Usuario;
-import com.example.proyectosdn.repository.AtributoRepository;
 import com.example.proyectosdn.repository.DispositivoRepository;
+import com.example.proyectosdn.repository.ServicioRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -31,7 +31,7 @@ public class UsuariosController {
     private DispositivoRepository dispositivoRepository;
 
     @Autowired
-    private AtributoRepository atributoRepository;
+    private ServicioRepository servicioRepository;
 
     // Listar usuarios
     @GetMapping("")
@@ -47,9 +47,9 @@ public class UsuariosController {
     public String mostrarFormularioNuevo(Model model) {
         log.info("Mostrando formulario de nuevo usuario");
         Usuario usuario = new Usuario();
-        // Valores por defecto para RADIUS
-        usuario.setAttribute("Cleartext-Password");
-        usuario.setOp("=");
+
+        usuario.setAttribute("SHA256-Password");
+        usuario.setOp(":=");
 
         model.addAttribute("usuario", usuario);
         model.addAttribute("active", "usuarios");
@@ -102,8 +102,7 @@ public class UsuariosController {
                 model.addAttribute("active", "usuarios");
                 return "usuarios/formulario_usuarios";
             }
-
-            usuarioRepository.save(usuario);
+            usuarioRepository.registrarUsuario(usuario.getUsername(),usuario.getValue(),usuario.getNombres(),usuario.getApellidoPaterno(),usuario.getApellidoMaterno(),usuario.getRol(),usuario.getDni());
             redirectAttributes.addFlashAttribute("mensaje", "Usuario guardado exitosamente");
 
         } catch (Exception e) {
@@ -111,7 +110,7 @@ public class UsuariosController {
             redirectAttributes.addFlashAttribute("error", "Error al guardar el usuario");
         }
 
-        return "redirect:/usuarios";
+        return "redirect:/sdn/login";
     }
 
     // Ver detalles del usuario
@@ -150,12 +149,12 @@ public class UsuariosController {
                 return "redirect:/usuarios";
             }
 
-            // Verificar si tiene atributos creados
-            List<Atributo> atributos = atributoRepository.findByUsuarioCreadorId(id);
-            if (!atributos.isEmpty()) {
+            // Verificar si tiene servicios creados
+            List<Servicio> servicios = servicioRepository.findByUsuarioCreadorId(id);
+            if (!servicios.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error",
-                        "No se puede eliminar el usuario porque ha creado " + atributos.size() +
-                                " atributo(s)");
+                        "No se puede eliminar el usuario porque ha creado " + servicios.size() +
+                                " servicios(s)");
                 return "redirect:/usuarios";
             }
 
