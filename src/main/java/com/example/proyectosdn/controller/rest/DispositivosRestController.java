@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/dispositivos")
+@RequestMapping("/sdn/api/dispositivos")
 @Slf4j
 public class DispositivosRestController {
 

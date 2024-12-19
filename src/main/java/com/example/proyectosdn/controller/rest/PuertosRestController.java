@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/puertos")
+@RequestMapping("/sdn/api/puertos")
 @Slf4j
 public class PuertosRestController {
 
