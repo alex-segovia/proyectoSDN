@@ -305,7 +305,7 @@ public class AuthController {
         }
         Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
         if(idSesionActiva!=null){
-            httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/auth");
+            httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/dispositivos");
         }
         return "login";
     }
