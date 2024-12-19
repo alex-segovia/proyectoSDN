@@ -4,11 +4,9 @@ import com.example.proyectosdn.entity.Dispositivo;
 import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
-import com.example.proyectosdn.repository.DispositivoRepository;
-import com.example.proyectosdn.repository.ServicioPorDispositivoRepository;
-import com.example.proyectosdn.repository.ServicioRepository;
-import com.example.proyectosdn.repository.UsuarioRepository;
+import com.example.proyectosdn.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +23,8 @@ import java.util.Optional;
 @RequestMapping("/sdn/dispositivos")
 @Slf4j
 public class DispositivosController {
+    @Autowired
+    private SesionActivaRepository sesionActivaRepository;
 
     @Autowired
     private DispositivoRepository dispositivoRepository;
@@ -40,10 +40,26 @@ public class DispositivosController {
 
     // Listar dispositivos
     @GetMapping("")
-    public String listarDispositivos(Model model) {
+    public String listarDispositivos(Model model, HttpServletRequest httpRequest) {
 
-        log.info("Listando todos los dispositivos");
-        model.addAttribute("dispositivos", dispositivoRepository.findAll());
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        }
+
+        String rolUsuario = sesionActivaRepository.userRolPorIp(ipAdd);
+
+        if(rolUsuario.equals("Superadmin")){
+            log.info("Listando todos los dispositivos");
+            model.addAttribute("dispositivos", dispositivoRepository.findAll());
+        }else{
+            log.info("Listando los dispositivos del usuario");
+            model.addAttribute("dispositivos", dispositivoRepository.findById(sesionActivaRepository.userIdPorIp(ipAdd)));
+        }
+
         model.addAttribute("active", "dispositivos");
         return "dispositivos/lista_dispositivos";
     }

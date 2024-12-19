@@ -177,6 +177,61 @@
             e.target.value = 65535;
         }
     });
+
+    function confirmarCerrarSesion() {
+        Swal.fire({
+            title: 'Cierre de sesión',
+            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Este dispositivo',
+            cancelButtonText: 'Todos los dispositivos',
+            reverseButtons: true, // Invierte el orden de los botones
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Usuario eligió "Este dispositivo"
+                let data = {
+                    "type" : "one",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/auth/";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/auth/";
+                    }
+                });
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Usuario eligió "Todos los dispositivos"
+                let data = {
+                    "type" : "all",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/auth/";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/auth/";
+                    }
+                });
+            }
+        });
+    }
 </script>
 </body>
 </html>

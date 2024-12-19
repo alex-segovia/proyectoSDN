@@ -28,4 +28,10 @@ public interface SesionActivaRepository extends JpaRepository<SesionActiva, Inte
 
     @Query(nativeQuery = true,value = "select u.username from sesion_activa sa inner join usuario u on sa.username=u.username where sa.active=1 and sa.ip=?1 limit 1")
     String usernameSesionActivaPorIp(String ip);
+
+    @Query(nativeQuery = true,value = "select u.rol from sesion_activa sa inner join usuario u on sa.username=u.username where sa.active=1 and sa.ip=?1 limit 1")
+    String userRolPorIp(String ip);
+
+    @Query(nativeQuery = true,value = "select u.id from sesion_activa sa inner join usuario u on sa.username=u.username where sa.active=1 and sa.ip=?1 limit 1")
+    Integer userIdPorIp(String ip);
 }
