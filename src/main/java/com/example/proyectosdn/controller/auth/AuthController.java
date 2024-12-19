@@ -304,7 +304,7 @@ public class AuthController {
         }
         Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
         if(idSesionActiva!=null){
-            return "redirect: /sdn/dispositivos";
+            return "redirect:/sdn/dispositivos";
         }
         return "login";
     }

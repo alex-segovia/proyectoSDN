@@ -98,12 +98,6 @@
     </div>
 </div>
 
-<button style="display: none" id="logoutModalButtonAux" onclick="confirmarCerrarSesion()">ola</button>
-
-<form id="logoutForm" method="POST" action="/sdn/auth/logout?type=one" style="display: none;"></form>
-<form id="logoutAllForm" method="POST" action="/sdn/auth/logout?type=all" style="display: none;"></form>
-
-
 <!-- Modal de Confirmación -->
 <div class="modal fade" id="eliminarModal" tabindex="-1">
     <div class="modal-dialog">
@@ -133,7 +127,7 @@
     $(document).ready(function() {
         const table = $('#dispositivosTable').DataTable({
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                url: '/sdn/json/es.json'
             },
             responsive: true,
             dom: 'Bfrtip',
@@ -244,14 +238,6 @@
             }
         });
     }
-
-    function abrirModal(){
-        const botonAux = document.getElementById('logoutModalButtonAux');
-        botonAux.click();
-    }
 </script>
-
-
-
 </body>
 </html>
