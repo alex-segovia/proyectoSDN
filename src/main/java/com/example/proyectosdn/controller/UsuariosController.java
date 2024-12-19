@@ -110,7 +110,7 @@ public class UsuariosController {
             redirectAttributes.addFlashAttribute("error", "Error al guardar el usuario");
         }
 
-        return "redirect:/sdn/auth/";
+        return "redirect:/sdn/auth";
     }
 
     // Ver detalles del usuario

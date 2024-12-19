@@ -30,7 +30,7 @@ public class FilterQuery implements Filter {
         if(idSesion!=null){
             chain.doFilter(request, response); // Continuar con el flujo normal
         }else {
-            httpResponse.sendRedirect("/sdn/auth/"); // Redirigir si no cumple la condición
+            httpResponse.sendRedirect("/sdn/auth"); // Redirigir si no cumple la condición
         }
     }
 }

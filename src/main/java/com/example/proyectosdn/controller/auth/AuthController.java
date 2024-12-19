@@ -301,7 +301,12 @@ public class AuthController {
         }
         Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
         if(idSesionActiva!=null){
-            return "redirect:/sdn/dispositivos";
+            String scheme = httpRequest.getScheme(); // Protocolo (http o https)
+            String serverName = httpRequest.getServerName(); // Nombre del host
+            int serverPort = httpRequest.getServerPort(); // Puerto
+            String contextPath = httpRequest.getContextPath(); // Contexto de la aplicación
+            String redirectUrl = String.format("%s://%s:%d%s/sdn/dispositivos", scheme, serverName, serverPort, contextPath);
+            return "redirect:" + redirectUrl;
         }
         return "login";
     }
