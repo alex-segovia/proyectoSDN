@@ -1,9 +1,6 @@
 package com.example.proyectosdn.controller.auth;
 
-import com.example.proyectosdn.entity.Dispositivo;
-import com.example.proyectosdn.entity.Servicio;
-import com.example.proyectosdn.entity.SesionActiva;
-import com.example.proyectosdn.entity.Usuario;
+import com.example.proyectosdn.entity.*;
 import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.extra.Utilities;
 import com.example.proyectosdn.repository.*;
@@ -18,10 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.tinyradius.packet.AccessRequest;
 import org.tinyradius.packet.RadiusPacket;
@@ -29,7 +23,9 @@ import org.tinyradius.util.RadiusClient;
 
 import java.net.http.HttpResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -122,9 +118,17 @@ public class AuthController {
         Map<String,Object>responseMap=new HashMap<>();
         Servicio servicioEnComun=servicioRepository.obtenerServicioEnComun(macOrigen,macDestino);
         Map<String,Object> content=new HashMap<>();
+        HashMap<String,Object>servicioMap=new HashMap<>();
+        List<Integer>puertos=new ArrayList<>();
+        for(PuertoPorServicio puertoPorServicio:servicioEnComun.getPuertoPorServicios()){
+            puertos.add(puertoPorServicio.getPuerto().getId());
+        }
+        servicioMap.put("id",servicioEnComun.getId());
+        servicioMap.put("nombre",servicioEnComun.getNombre());
+        servicioMap.put("estado",servicioEnComun.getEstado());
+        servicioMap.put("puertos",puertos);
         content.put("servicio",servicioEnComun);
         System.out.println("Success");
-
         responseMap.put("status","success");
         responseMap.put("content",content);
         return ResponseEntity.ok(responseMap);
@@ -218,7 +222,10 @@ public class AuthController {
     }
 
     @PostMapping("/autenticarSSH")
-    public ResponseEntity<Map<String,Object>> autenticarSSH(@RequestParam("username") String username, @RequestParam("password") String password, @RequestParam("ip") String ipAdd) {
+    public ResponseEntity<Map<String,Object>> autenticarSSH(@RequestBody Map<String,Object>data) {
+        String username=data.get("username").toString();
+        String password=data.get("password").toString();
+        String ipAdd=data.get("ip").toString();
         Map<String,Object>responseMap=new HashMap<>();
         try {
             System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);

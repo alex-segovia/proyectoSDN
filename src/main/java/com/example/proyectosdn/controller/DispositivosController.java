@@ -41,6 +41,7 @@ public class DispositivosController {
     // Listar dispositivos
     @GetMapping("")
     public String listarDispositivos(Model model) {
+
         log.info("Listando todos los dispositivos");
         model.addAttribute("dispositivos", dispositivoRepository.findAll());
         model.addAttribute("active", "dispositivos");

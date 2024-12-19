@@ -22,14 +22,21 @@ public class HttpClientService {
     public String obtenerMacPorIp(String ipDestino) {
         String url = "http://localhost:8082" + "/wm/device/";
         try {
+            // Realizar la solicitud al API de Floodlight
             ResponseEntity<List> response = restTemplate.getForEntity(url, List.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                // Iterar sobre la lista de dispositivos
                 List<Map<String, Object>> devices = response.getBody();
                 for (Map<String, Object> device : devices) {
+                    // Obtener la lista de direcciones IPv4 del dispositivo
                     List<String> ipv4Addresses = (List<String>) device.get("ipv4");
                     if (ipv4Addresses != null && ipv4Addresses.contains(ipDestino)) {
-                        return (String) device.get("mac");
+                        // Obtener la lista de direcciones MAC y devolver la primera (puedes cambiar esto según tus necesidades)
+                        List<String> macAddresses = (List<String>) device.get("mac");
+                        if (macAddresses != null && !macAddresses.isEmpty()) {
+                            return macAddresses.get(0); // Devolver la primera MAC
+                        }
                     }
                 }
             }
@@ -37,6 +44,7 @@ public class HttpClientService {
             e.printStackTrace();
             System.err.println("Error al consultar el API de Floodlight: " + e.getMessage());
         }
-        return null;
+        return null; // Retornar null si no se encuentra la MAC
     }
+
 }
