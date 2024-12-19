@@ -292,24 +292,6 @@ public class AuthController {
         }
     }
 
-
-    @GetMapping("")
-    public String mostrarLogin(HttpServletRequest httpRequest,ServletResponse response) throws IOException {
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        String ipAdd = httpRequest.getHeader("X-Real-IP");
-        if (ipAdd == null || ipAdd.isEmpty()) {
-            ipAdd = httpRequest.getHeader("X-Forwarded-For");
-            if (ipAdd == null || ipAdd.isEmpty()) {
-                ipAdd = httpRequest.getRemoteAddr();
-            }
-        }
-        Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
-        if(idSesionActiva!=null){
-            httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/dispositivos");
-        }
-        return "login";
-    }
-
     @PostMapping("/registro")
     public String registrarUsuario(@Valid Usuario usuario,
                                    BindingResult bindingResult,

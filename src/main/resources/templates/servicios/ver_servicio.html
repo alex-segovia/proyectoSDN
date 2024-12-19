@@ -202,12 +202,12 @@
                     data: data,
                     success: function (response) {
                         console.log(response.content);
-                        window.location.href = "/sdn/auth";
+                        window.location.href = "/sdn/login";
                     },
                     error: function (xhr, status, error) {
                         const jsonResponse=xhr.responseText;
                         console.log(jsonResponse);
-                        window.location.href = "/sdn/auth";
+                        window.location.href = "/sdn/login";
                     }
                 });
 
@@ -223,12 +223,12 @@
                     data: data,
                     success: function (response) {
                         console.log(response.content);
-                        window.location.href = "/sdn/auth";
+                        window.location.href = "/sdn/login";
                     },
                     error: function (xhr, status, error) {
                         const jsonResponse=xhr.responseText;
                         console.log(jsonResponse);
-                        window.location.href = "/sdn/auth";
+                        window.location.href = "/sdn/login";
                     }
                 });
             }
