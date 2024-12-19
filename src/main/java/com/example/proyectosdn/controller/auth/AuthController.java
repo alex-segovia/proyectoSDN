@@ -154,7 +154,9 @@ public class AuthController {
 
 
     @PostMapping("/autenticar")
-    public ResponseEntity<Map<String,Object>> autenticar(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletRequest httpRequest) {
+    public ResponseEntity<Map<String,Object>> autenticar(@RequestBody Map<String,Object> data, HttpServletRequest httpRequest) {
+        String username = (String)data.get("username");
+        String password = (String)data.get("password");
         Map<String,Object>responseMap=new HashMap<>();
         try {
             String ipAdd = httpRequest.getHeader("X-Real-IP");

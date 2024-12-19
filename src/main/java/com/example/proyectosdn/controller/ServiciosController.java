@@ -5,8 +5,10 @@ import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.ServicioPorDispositivoRepository;
 import com.example.proyectosdn.repository.ServicioRepository;
+import com.example.proyectosdn.repository.SesionActivaRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ import java.util.Optional;
 @RequestMapping("/sdn/servicios")
 @Slf4j
 public class ServiciosController {
+    @Autowired
+    private SesionActivaRepository sesionActivaRepository;
 
     @Autowired
     private ServicioRepository servicioRepository;
@@ -35,9 +39,25 @@ public class ServiciosController {
 
     // Listar servicios
     @GetMapping("")
-    public String listarServicios(Model model) {
-        log.info("Listando todos los servicios");
-        model.addAttribute("servicios", servicioRepository.findAll());
+    public String listarServicios(Model model, HttpServletRequest httpRequest) {
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        }
+        String rolUsuario = sesionActivaRepository.userRolPorIp(ipAdd);
+
+        if(rolUsuario.equals("Superadmin")){
+            log.info("Listando todos los servicios");
+            model.addAttribute("serviciosDisponibles", servicioRepository.findAll());
+        }else{
+            log.info("Listando todos mis servicios");
+            model.addAttribute("servicios", servicioRepository.findByUsuarioCreadorId(sesionActivaRepository.userIdPorIp(ipAdd)));
+            log.info("Listando los servicios disponibles");
+            model.addAttribute("serviciosDisponibles", servicioRepository.listarServiciosDisponbiles(sesionActivaRepository.userIdPorIp(ipAdd)));
+        }
         model.addAttribute("active", "servicios");
         return "servicios/lista_servicios";
     }

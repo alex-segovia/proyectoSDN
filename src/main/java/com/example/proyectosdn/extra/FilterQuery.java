@@ -27,10 +27,6 @@ public class FilterQuery implements Filter {
         String ip=httpRequest.getRemoteAddr();
         Integer idSesion=sesionActivaRepository.idSesionActivaPorIp(ip);
 
-        if(idSesion!=null){
-            chain.doFilter(request, response); // Continuar con el flujo normal
-        }else {
-            httpResponse.sendRedirect("/sdn/auth"); // Redirigir si no cumple la condición
-        }
+        chain.doFilter(request, response); // Continuar con el flujo normal
     }
 }
