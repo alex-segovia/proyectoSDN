@@ -1,9 +1,9 @@
 package com.example.proyectosdn.controller.rest;
 
-import com.example.proyectosdn.controller.dto.DispositivoResumenDTO;
-import com.example.proyectosdn.controller.dto.ServicioResumenDTO;
-import com.example.proyectosdn.controller.dto.UsuarioDTO;
-import com.example.proyectosdn.controller.dto.UsuarioRequest;
+import com.example.proyectosdn.dto.DispositivoResumenDTO;
+import com.example.proyectosdn.dto.ServicioResumenDTO;
+import com.example.proyectosdn.dto.UsuarioDTO;
+import com.example.proyectosdn.dto.UsuarioRequest;
 import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.validation.Valid;

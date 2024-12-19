@@ -1,4 +1,4 @@
-package com.example.proyectosdn.controller.dto;
+package com.example.proyectosdn.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

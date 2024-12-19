@@ -1,7 +1,7 @@
 package com.example.proyectosdn.controller.rest;
 
-import com.example.proyectosdn.controller.dto.PuertoDTO;
-import com.example.proyectosdn.controller.dto.PuertoRequest;
+import com.example.proyectosdn.dto.PuertoDTO;
+import com.example.proyectosdn.dto.PuertoRequest;
 import com.example.proyectosdn.entity.Puerto;
 import com.example.proyectosdn.repository.PuertoRepository;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,8 @@
 package com.example.proyectosdn.controller.rest;
 
-import com.example.proyectosdn.controller.dto.ServicioDTO;
-import com.example.proyectosdn.controller.dto.ServicioRequest;
-import com.example.proyectosdn.controller.dto.UsuarioDTO;
+import com.example.proyectosdn.dto.ServicioDTO;
+import com.example.proyectosdn.dto.ServicioRequest;
+import com.example.proyectosdn.dto.UsuarioDTO;
 import com.example.proyectosdn.entity.PuertoPorServicio;
 import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.repository.PuertoPorServicioRepository;

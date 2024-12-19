@@ -1,7 +1,7 @@
 package com.example.proyectosdn.controller.rest;
 
-import com.example.proyectosdn.controller.dto.DispositivoDTO;
-import com.example.proyectosdn.controller.dto.DispositivoRequest;
+import com.example.proyectosdn.dto.DispositivoDTO;
+import com.example.proyectosdn.dto.DispositivoRequest;
 import com.example.proyectosdn.entity.Dispositivo;
 import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.DispositivoRepository;
