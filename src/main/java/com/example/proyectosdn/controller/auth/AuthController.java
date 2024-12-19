@@ -290,11 +290,8 @@ public class AuthController {
     }
 
 
-    @GetMapping("/")
-    public String mostrarLogin(Model model,
-                               @RequestParam(required = false) String logout,
-                               HttpSession session,
-                               HttpServletRequest httpRequest) {
+    @GetMapping("")
+    public String mostrarLogin(HttpServletRequest httpRequest) {
         String ipAdd = httpRequest.getHeader("X-Real-IP");
         if (ipAdd == null || ipAdd.isEmpty()) {
             ipAdd = httpRequest.getHeader("X-Forwarded-For");
