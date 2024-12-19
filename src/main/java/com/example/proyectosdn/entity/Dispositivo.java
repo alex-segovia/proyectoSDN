@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -38,5 +39,5 @@ public class Dispositivo {
     private Integer estado;
 
     @OneToMany(mappedBy = "dispositivo")
-    private List<ServicioPorDispositivo> servicioPorDispositivos;
+    private List<ServicioPorDispositivo> servicioPorDispositivos = new ArrayList<>();
 }
