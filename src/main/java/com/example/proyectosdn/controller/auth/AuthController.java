@@ -166,6 +166,8 @@ public class AuthController {
             }
             System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
             String mac=httpClientService.obtenerMacPorIp(ipAdd);
+            System.out.println("MAC obtenida: "+mac);
+
             String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
             if(usernameNuevo!=null){
                 if(!usernameNuevo.equals(username)){
@@ -176,6 +178,7 @@ public class AuthController {
                 }
             }else{
                 dispositivoRepository.actualizarIdUsuario(username,mac);
+                System.out.println("Se actualizó el dispositivo de MAC "+mac+" como registrado por el usuario "+username);
             }
             RadiusClient client = new RadiusClient(radiusServer, sharedSecret);
             client.setAuthPort(authPort);

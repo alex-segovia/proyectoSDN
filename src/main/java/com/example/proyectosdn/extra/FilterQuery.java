@@ -23,14 +23,27 @@ public class FilterQuery implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+        String url = httpRequest.getRequestURI();
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        };
+        System.out.println("El IP actualmente conectado es: "+ipAdd);
+        Integer idSesion=sesionActivaRepository.idSesionActivaPorIp(ipAdd);
+        System.out.println("El ID de sesión actual es: "+idSesion);
 
-        String ip=httpRequest.getRemoteAddr();
-        Integer idSesion=sesionActivaRepository.idSesionActivaPorIp(ip);
+
 
         if(idSesion!=null){
+            if(url.startsWith("/sdn/login")){
+                httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/dispositivos"); // Redirigir si no cumple la condición
+            }
             chain.doFilter(request, response); // Continuar con el flujo normal
         }else {
-            httpResponse.sendRedirect("/sdn/auth"); // Redirigir si no cumple la condición
+            httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/login"); // Redirigir si no cumple la condición
         }
     }
 }
