@@ -4,7 +4,9 @@ import com.example.proyectosdn.entity.*;
 import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.extra.Utilities;
 import com.example.proyectosdn.repository.*;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.tinyradius.packet.AccessRequest;
 import org.tinyradius.packet.RadiusPacket;
 import org.tinyradius.util.RadiusClient;
 
+import java.io.IOException;
 import java.net.http.HttpResponse;
 
 import java.util.ArrayList;
@@ -291,7 +294,8 @@ public class AuthController {
 
 
     @GetMapping("")
-    public String mostrarLogin(HttpServletRequest httpRequest) {
+    public String mostrarLogin(HttpServletRequest httpRequest,ServletResponse response) throws IOException {
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
         String ipAdd = httpRequest.getHeader("X-Real-IP");
         if (ipAdd == null || ipAdd.isEmpty()) {
             ipAdd = httpRequest.getHeader("X-Forwarded-For");
@@ -301,12 +305,7 @@ public class AuthController {
         }
         Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
         if(idSesionActiva!=null){
-            String scheme = httpRequest.getScheme(); // Protocolo (http o https)
-            String serverName = httpRequest.getServerName(); // Nombre del host
-            int serverPort = httpRequest.getServerPort(); // Puerto
-            String contextPath = httpRequest.getContextPath(); // Contexto de la aplicación
-            String redirectUrl = String.format("%s://%s:%d%s/sdn/dispositivos", scheme, serverName, serverPort, contextPath);
-            return "redirect:" + redirectUrl;
+            httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/auth");
         }
         return "login";
     }
