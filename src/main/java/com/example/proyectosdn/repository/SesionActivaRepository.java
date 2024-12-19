@@ -24,5 +24,8 @@ public interface SesionActivaRepository extends JpaRepository<SesionActiva, Inte
     @Transactional
     @Modifying
     @Query(nativeQuery = true,value = "delete from sesion_activa where active=1 and username=?1")
-    void eliminarSesionActivaPorUsername(String ip);
+    void eliminarSesionActivaPorUsername(String username);
+
+    @Query(nativeQuery = true,value = "select u.username from sesion_activa sa inner join usuario u on sa.username=u.username where sa.active=1 and sa.ip=?1 limit 1")
+    String usernameSesionActivaPorIp(String ip);
 }

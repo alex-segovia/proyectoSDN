@@ -98,28 +98,11 @@
     </div>
 </div>
 
-<!-- Modal de Cerrar Sesión -->
-<div class="modal fade" id="logoutModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Cierre de sesión</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                ¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?
-            </div>
-            <div class="modal-footer">
-                <form id="logoutForm" method="POST">
-                    <button type="submit" class="btn btn-success">Este dispositivo</button>
-                </form>
-                <form id="logoutAllForm" method="POST">
-                    <button type="submit" class="btn btn-success">Todos los dispositivos</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<button style="display: none" id="logoutModalButtonAux" onclick="confirmarCerrarSesion()">ola</button>
+
+<form id="logoutForm" method="POST" action="/sdn/auth/logout?type=one" style="display: none;"></form>
+<form id="logoutAllForm" method="POST" action="/sdn/auth/logout?type=all" style="display: none;"></form>
+
 
 <!-- Modal de Confirmación -->
 <div class="modal fade" id="eliminarModal" tabindex="-1">
@@ -208,12 +191,63 @@
     }, 5000);
 
     function confirmarCerrarSesion() {
-        const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
-        const formOne = document.getElementById('logoutForm');
-        const formAll = document.getElementById('logoutAllForm');
-        formOne.action = /*[[@{/sdn/auth/logout?type=one}]]*/ '';
-        formAll.action = /*[[@{/sdn/auth/logout?type=all}]]*/ '';
-        modal.show();
+        Swal.fire({
+            title: 'Cierre de sesión',
+            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Este dispositivo',
+            cancelButtonText: 'Todos los dispositivos',
+            reverseButtons: true, // Invierte el orden de los botones
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Usuario eligió "Este dispositivo"
+                let data = {
+                    "type" : "one",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/auth/";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/auth/";
+                    }
+                });
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Usuario eligió "Todos los dispositivos"
+                let data = {
+                    "type" : "all",
+                };
+
+                $.ajax({
+                    url: "/sdn/auth/logout",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                        window.location.href = "/sdn/auth/";
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                        window.location.href = "/sdn/auth/";
+                    }
+                });
+            }
+        });
+    }
+
+    function abrirModal(){
+        const botonAux = document.getElementById('logoutModalButtonAux');
+        botonAux.click();
     }
 </script>
 

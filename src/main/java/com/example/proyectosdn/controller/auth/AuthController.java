@@ -312,22 +312,41 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public String cerrarSesion(@RequestParam("type") String type,HttpServletRequest httpRequest) {
-        String ipAdd = httpRequest.getHeader("X-Real-IP");
-        if (ipAdd == null || ipAdd.isEmpty()) {
-            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+    public ResponseEntity<Map<String,Object>> cerrarSesion(@RequestParam("type") String type,HttpServletRequest httpRequest) {
+        Map<String,Object>responseMap=new HashMap<>();
+        try{
+            String ipAdd = httpRequest.getHeader("X-Real-IP");
             if (ipAdd == null || ipAdd.isEmpty()) {
-                ipAdd = httpRequest.getRemoteAddr();
+                ipAdd = httpRequest.getHeader("X-Forwarded-For");
+                if (ipAdd == null || ipAdd.isEmpty()) {
+                    ipAdd = httpRequest.getRemoteAddr();
+                }
             }
-        }
-        Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
-        if(idSesionActiva!=null){
-            if(type.equals("one")){
-                sesionActivaRepository.eliminarSesionActivaPorIp(ipAdd);
+            Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
+            if(idSesionActiva!=null){
+
+                if(type.equals("one")){
+                    sesionActivaRepository.eliminarSesionActivaPorIp(ipAdd);
+                    responseMap.put("status","success");
+                    responseMap.put("content","Sesión actual cerrada.");
+                }else{
+                    String username = sesionActivaRepository.usernameSesionActivaPorIp(ipAdd);
+                    sesionActivaRepository.eliminarSesionActivaPorUsername(username);
+                    responseMap.put("status","success");
+                    responseMap.put("content","Todas las sesiones cerradas.");
+                }
+                return ResponseEntity.ok(responseMap);
             }else{
-                sesionActivaRepository.eliminarSesionActivaPorUsername("aiuda");
+                responseMap.put("status","error");
+                responseMap.put("content","Este dispositivo no tiene una sesión activa");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
             }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("Unexpected response type: " + e.getMessage());
+            responseMap.put("status","error");
+            responseMap.put("content",e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
         }
-        return "redirect: /sdn/auth/";
     }
 }
