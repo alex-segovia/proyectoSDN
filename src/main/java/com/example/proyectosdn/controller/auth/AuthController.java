@@ -150,7 +150,13 @@ public class AuthController {
     public ResponseEntity<Map<String,Object>> autenticar(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletRequest httpRequest) {
         Map<String,Object>responseMap=new HashMap<>();
         try {
-            String ipAdd=httpRequest.getRemoteAddr();
+            String ipAdd = httpRequest.getHeader("X-Real-IP");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getHeader("X-Forwarded-For");
+                if (ipAdd == null || ipAdd.isEmpty()) {
+                    ipAdd = httpRequest.getRemoteAddr();
+                }
+            }
             System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
             String mac=httpClientService.obtenerMacPorIp(ipAdd);
             String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
@@ -185,7 +191,6 @@ public class AuthController {
                     sesionActiva.setActive(true);
                     sesionActivaRepository.save(sesionActiva);
                 }
-
                 System.out.println("Authentication successful");
                 responseMap.put("status","success");
                 responseMap.put("ip",ipAdd);
