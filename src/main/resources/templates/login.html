@@ -375,6 +375,7 @@
             success: function (response) {
                 console.log(response.content);
                 alert("Hola , estás autenticado");
+                window.location.href = "/sdn/dispositivos";
             },
             error: function (xhr, status, error) {
                 const jsonResponse=xhr.responseText;

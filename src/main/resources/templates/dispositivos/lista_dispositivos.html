@@ -98,6 +98,29 @@
     </div>
 </div>
 
+<!-- Modal de Cerrar Sesión -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cierre de sesión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?
+            </div>
+            <div class="modal-footer">
+                <form id="logoutForm" method="POST">
+                    <button type="submit" class="btn btn-success">Este dispositivo</button>
+                </form>
+                <form id="logoutAllForm" method="POST">
+                    <button type="submit" class="btn btn-success">Todos los dispositivos</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal de Confirmación -->
 <div class="modal fade" id="eliminarModal" tabindex="-1">
     <div class="modal-dialog">
@@ -183,7 +206,18 @@
             $(this).remove();
         });
     }, 5000);
+
+    function confirmarCerrarSesion() {
+        const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+        const formOne = document.getElementById('logoutForm');
+        const formAll = document.getElementById('logoutAllForm');
+        formOne.action = /*[[@{/sdn/auth/logout?type=one}]]*/ '';
+        formAll.action = /*[[@{/sdn/auth/logout?type=all}]]*/ '';
+        modal.show();
+    }
 </script>
+
+
 
 </body>
 </html>

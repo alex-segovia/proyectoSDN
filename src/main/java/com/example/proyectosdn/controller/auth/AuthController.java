@@ -189,6 +189,7 @@ public class AuthController {
                     sesionActiva.setSessionTimeout(3600);
                     sesionActiva.setUsername(username);
                     sesionActiva.setActive(true);
+                    sesionActiva.setIp(ipAdd);
                     sesionActivaRepository.save(sesionActiva);
                 }
                 System.out.println("Authentication successful");
@@ -252,6 +253,7 @@ public class AuthController {
                     sesionActiva.setSessionTimeout(3600);
                     sesionActiva.setUsername(username);
                     sesionActiva.setActive(true);
+                    sesionActiva.setIp(ipAdd);
                     sesionActivaRepository.save(sesionActiva);
                 }
 
@@ -284,7 +286,19 @@ public class AuthController {
     @GetMapping("/")
     public String mostrarLogin(Model model,
                                @RequestParam(required = false) String logout,
-                               HttpSession session) {
+                               HttpSession session,
+                               HttpServletRequest httpRequest) {
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        }
+        Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
+        if(idSesionActiva!=null){
+            return "redirect: /sdn/dispositivos";
+        }
         return "login";
     }
 
@@ -295,5 +309,25 @@ public class AuthController {
                                    RedirectAttributes redirectAttributes) {
 
         return "";
+    }
+
+    @PostMapping("/logout")
+    public String cerrarSesion(@RequestParam("type") String type,HttpServletRequest httpRequest) {
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        }
+        Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
+        if(idSesionActiva!=null){
+            if(type.equals("one")){
+                sesionActivaRepository.eliminarSesionActivaPorIp(ipAdd);
+            }else{
+                sesionActivaRepository.eliminarSesionActivaPorUsername("aiuda");
+            }
+        }
+        return "redirect: /sdn/auth/";
     }
 }
