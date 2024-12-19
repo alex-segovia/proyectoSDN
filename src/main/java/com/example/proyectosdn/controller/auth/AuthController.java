@@ -4,11 +4,13 @@ import com.example.proyectosdn.entity.*;
 import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.extra.Utilities;
 import com.example.proyectosdn.repository.*;
+import jakarta.persistence.Column;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +111,22 @@ public class AuthController {
             responseMap.put("status","success");
             content.put("id",dispositivo.getId());
             content.put("nombre",dispositivo.getNombre());
-            content.put("usuario",dispositivo.getUsuario());
+            HashMap<String,Object>usuarioMap=new HashMap<>();
+            Usuario usuario=dispositivo.getUsuario();
+            if(usuario!=null){
+                usuarioMap.put("id",usuario.getId());
+                usuarioMap.put("username",usuario.getUsername());
+                usuarioMap.put("attribute",usuario.getAttribute());
+                usuarioMap.put("op",usuario.getOp());
+                usuarioMap.put("value",usuario.getValue());
+                usuarioMap.put("nombres",usuario.getNombres());
+                usuarioMap.put("apellidoPaterno",usuario.getApellidoPaterno());
+                usuarioMap.put("apellidoMaterno",usuario.getApellidoMaterno());
+                usuarioMap.put("rol",usuario.getRol());
+                usuarioMap.put("dni",usuario.getDni());
+                usuarioMap.put("estado",usuario.getEstado());
+                content.put("usuario",usuarioMap);
+            }
             content.put("autenticado",dispositivo.getAutenticado());
             content.put("estado",dispositivo.getEstado());
             System.out.println("Success");
