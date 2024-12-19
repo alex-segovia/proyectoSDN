@@ -211,6 +211,70 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/autenticarSSH")
+    public ResponseEntity<Map<String,Object>> autenticarSSH(@RequestParam("username") String username, @RequestParam("password") String password, @RequestParam("ip") String ipAdd) {
+        Map<String,Object>responseMap=new HashMap<>();
+        try {
+            System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
+            String mac=httpClientService.obtenerMacPorIp(ipAdd);
+            String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
+            if(usernameNuevo!=null){
+                if(!usernameNuevo.equals(username)){
+                    System.out.println("Asociación de dispositivo fallida.");
+                    responseMap.put("status","error");
+                    responseMap.put("content","El dispositivo desde el que te estás intentado autenticar ya está registrado por otro usuario.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+                }
+            }else{
+                dispositivoRepository.actualizarIdUsuario(username,mac);
+            }
+            RadiusClient client = new RadiusClient(radiusServer, sharedSecret);
+            client.setAuthPort(authPort);
+            AccessRequest request = new AccessRequest(username, password);
+            request.setAuthProtocol(AccessRequest.AUTH_PAP);
+
+            RadiusPacket response = client.authenticate(request);
+
+            if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
+                SesionActiva sesionActiva=sesionActivaRepository.obtenerUltimaSesionActiva(username);
+                if(sesionActiva!=null) {
+                    sesionActiva.setLastActivity(Utilities.obtenerFechaHoraActual());
+                    sesionActivaRepository.save(sesionActiva);
+                }else {
+                    sesionActiva=new SesionActiva();
+                    sesionActiva.setSessionStart(Utilities.obtenerFechaHoraActual());
+                    sesionActiva.setLastActivity(Utilities.obtenerFechaHoraActual());
+                    sesionActiva.setSessionTimeout(3600);
+                    sesionActiva.setUsername(username);
+                    sesionActiva.setActive(true);
+                    sesionActivaRepository.save(sesionActiva);
+                }
+
+                System.out.println("Authentication successful");
+                responseMap.put("status","success");
+                responseMap.put("ip",ipAdd);
+                responseMap.put("content",true);
+                return ResponseEntity.ok(responseMap);
+            } else if (response.getPacketType() == RadiusPacket.ACCESS_REJECT) {
+                System.out.println("Authentication failed");
+                responseMap.put("status","success");
+                responseMap.put("content",false);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
+            } else {
+                System.out.println("Unexpected response type: " + response.getPacketType());
+                responseMap.put("status","error");
+                responseMap.put("content",response.getPacketType());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Unexpected response type: " + e.getMessage());
+            responseMap.put("status","error");
+            responseMap.put("content",e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
+        }
+    }
+
 
     @GetMapping("/")
     public String mostrarLogin(Model model,
