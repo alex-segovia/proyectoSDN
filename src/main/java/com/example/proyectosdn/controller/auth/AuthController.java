@@ -4,11 +4,13 @@ import com.example.proyectosdn.entity.*;
 import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.extra.Utilities;
 import com.example.proyectosdn.repository.*;
+import jakarta.persistence.Column;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,10 @@ import java.io.IOException;
 import java.net.http.HttpResponse;
 
 import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +111,22 @@ public class AuthController {
             responseMap.put("status","success");
             content.put("id",dispositivo.getId());
             content.put("nombre",dispositivo.getNombre());
-            content.put("usuario",dispositivo.getUsuario());
+            HashMap<String,Object>usuarioMap=new HashMap<>();
+            Usuario usuario=dispositivo.getUsuario();
+            if(usuario!=null){
+                usuarioMap.put("id",usuario.getId());
+                usuarioMap.put("username",usuario.getUsername());
+                usuarioMap.put("attribute",usuario.getAttribute());
+                usuarioMap.put("op",usuario.getOp());
+                usuarioMap.put("value",usuario.getValue());
+                usuarioMap.put("nombres",usuario.getNombres());
+                usuarioMap.put("apellidoPaterno",usuario.getApellidoPaterno());
+                usuarioMap.put("apellidoMaterno",usuario.getApellidoMaterno());
+                usuarioMap.put("rol",usuario.getRol());
+                usuarioMap.put("dni",usuario.getDni());
+                usuarioMap.put("estado",usuario.getEstado());
+                content.put("usuario",usuarioMap);
+            }
             content.put("autenticado",dispositivo.getAutenticado());
             content.put("estado",dispositivo.getEstado());
             System.out.println("Success");
@@ -168,6 +189,8 @@ public class AuthController {
             }
             System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
             String mac=httpClientService.obtenerMacPorIp(ipAdd);
+            System.out.println("MAC obtenida: "+mac);
+
             String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
             if(usernameNuevo!=null){
                 if(!usernameNuevo.equals(username)){
@@ -178,6 +201,7 @@ public class AuthController {
                 }
             }else{
                 dispositivoRepository.actualizarIdUsuario(username,mac);
+                System.out.println("Se actualizó el dispositivo de MAC "+mac+" como registrado por el usuario "+username);
             }
             RadiusClient client = new RadiusClient(radiusServer, sharedSecret);
             client.setAuthPort(authPort);
@@ -293,6 +317,13 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
         }
     }
+    @GetMapping("/")
+    public String mostrarLogin(Model model,
+                               @RequestParam(required = false) String logout,
+                               HttpSession session) {
+        model.addAttribute("usuario", new Usuario());
+        return "login";
+    }
 
     @PostMapping("/registro")
     public String registrarUsuario(@Valid Usuario usuario,
@@ -300,7 +331,45 @@ public class AuthController {
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
 
-        return "";
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("error", "Por favor, corrige los errores del formulario.");
+            return "login";
+        }
+
+        try {
+            // Verificar si el correo ya está registrado
+            if (usuarioRepository.findByUsername(usuario.getUsername()).isPresent()) {
+                model.addAttribute("error", "El correo ya está registrado.");
+                return "login";
+            }
+
+            String hashedPassword = hashPassword(usuario.getValue());
+            usuario.setOp("=");
+            usuario.setAttribute("Cleartext-Password");
+            usuario.setRol("ALUMNO");
+            usuario.setValue(hashedPassword);
+            usuario.setEstado(Integer.valueOf("1"));
+
+            usuarioRepository.save(usuario);
+
+            redirectAttributes.addFlashAttribute("success", "Usuario registrado exitosamente.");
+            return "redirect:/sdn/autenticacion/";
+        } catch (Exception e) {
+            model.addAttribute("error", "Ocurrió un error al registrar al usuario: " + e.getMessage());
+            return "login";
+        }
+    }
+
+
+    private String hashPassword(String password) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        String salt = "SALT123!";
+        String saltedPassword = password + salt;
+
+        byte[] encodedHash = digest.digest(saltedPassword.getBytes(StandardCharsets.UTF_8));
+
+        return Base64.getEncoder().encodeToString(encodedHash);
     }
 
     @PostMapping("/logout")

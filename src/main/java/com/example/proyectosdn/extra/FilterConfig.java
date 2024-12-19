@@ -21,4 +21,12 @@ public class FilterConfig {
         registrationBean.addUrlPatterns("/sdn/dispositivos", "/sdn/servicios", "/sdn/usuarios");
         return registrationBean;
     }
+
+    @Bean
+    public FilterRegistrationBean<FilterQuery> loginValidationFilter(FilterQuery filterQuery) {
+        FilterRegistrationBean<FilterQuery> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(filterQuery);
+        registrationBean.addUrlPatterns("/sdn/login");
+        return registrationBean;
+    }
 }
