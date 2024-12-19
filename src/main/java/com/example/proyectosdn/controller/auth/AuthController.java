@@ -151,7 +151,7 @@ public class AuthController {
         Map<String,Object>responseMap=new HashMap<>();
         try {
             String ipAdd=httpRequest.getRemoteAddr();
-
+            System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
             String mac=httpClientService.obtenerMacPorIp(ipAdd);
             String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
             if(usernameNuevo!=null){
@@ -210,6 +210,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
         }
     }
+
 
     @GetMapping("/")
     public String mostrarLogin(Model model,
