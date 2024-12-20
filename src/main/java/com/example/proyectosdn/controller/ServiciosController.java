@@ -156,6 +156,8 @@ public class ServiciosController {
             // Asignar usuario creador
             servicio.setUsuarioCreador(usuarioActual);
 
+            Integer idAux = servicio.getId();
+
             // Guardar servicio
             Servicio servicioGuardado = servicioRepository.save(servicio);
 
@@ -183,7 +185,7 @@ public class ServiciosController {
 
 
             redirectAttributes.addFlashAttribute("mensaje",
-                    servicio.getId() == null ? "Servicio creado exitosamente" : "Servicio actualizado exitosamente");
+                    idAux == null ? "Servicio creado exitosamente" : "Servicio actualizado exitosamente");
         } catch (Exception e) {
             log.error("Error al guardar servicio: ", e);
             redirectAttributes.addFlashAttribute("error", "Error al guardar el servicio");
@@ -259,7 +261,7 @@ public class ServiciosController {
                 .collect(Collectors.toList()));
 
         dto.setServicioPorDispositivo(servicio.getServicioPorDispositivos());
-        dto.setSolicitudesPendientes(servicioPorDispositivoRepository.findByEstado(0)); //PENDIENTES
+        dto.setSolicitudesPendientes(servicioPorDispositivoRepository.listarSolcitudesDeServicios(0,servicio.getId())); //PENDIENTES
 
         return dto;
     }

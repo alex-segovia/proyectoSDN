@@ -2,6 +2,7 @@ package com.example.proyectosdn.controller;
 
 import com.example.proyectosdn.entity.Dispositivo;
 import com.example.proyectosdn.entity.Servicio;
+import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.DispositivoRepository;
 import com.example.proyectosdn.repository.ServicioRepository;
@@ -12,13 +13,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -44,7 +49,8 @@ public class UsuariosController {
         Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
 
         log.info("Listando todos los usuarios");
-        model.addAttribute("usuarios", usuarioRepository.findAll());
+        model.addAttribute("usuarios", usuarioRepository.obtenerUsuariosRegistrados());
+        model.addAttribute("solicitudesUsuarios", usuarioRepository.obtenerSolicitudesUsuario());
         model.addAttribute("active", "usuarios");
         model.addAttribute("usuarioActual", usuarioActual);
         return "usuarios/lista_usuarios";
@@ -189,6 +195,60 @@ public class UsuariosController {
         }
 
         return "redirect:/sdn/usuarios";
+    }
+
+    @PostMapping("/solicitud/{id}/aprobar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> aprobarSolicitud(
+            @PathVariable Integer id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Verificar que la solicitud del usuario existe
+            Usuario usuario = usuarioRepository.obtenerSolicitudUsuarioPorId(id);
+            if(usuario!=null){
+                usuarioRepository.aceptarUsuarioPorId(id);
+                response.put("status", "success");
+                response.put("message", "Solicitud aprobada exitosamente");
+                return ResponseEntity.ok(response);
+            }else{
+                response.put("status", "error");
+                response.put("message", "No hay una solicitud de usuario con el ID: "+ id);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error al aprobar solicitud: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/solicitud/{id}/rechazar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> rechazarSolicitud(
+            @PathVariable Integer id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Verificar que la solicitud del usuario existe
+            Usuario usuario = usuarioRepository.obtenerSolicitudUsuarioPorId(id);
+            if(usuario!=null){
+                usuarioRepository.rechazarUsuarioPorId(id);
+                response.put("status", "success");
+                response.put("message", "Solicitud rechazada exitosamente");
+                return ResponseEntity.ok(response);
+            }else{
+                response.put("status", "error");
+                response.put("message", "No hay una solicitud de usuario con el ID: "+ id);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error al aprobar solicitud: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     // Manejador de excepciones

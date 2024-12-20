@@ -122,7 +122,7 @@
                                         <i class='bx bx-x me-1'></i>
                                         Cancelar
                                     </a>
-                                    <a onclick="confirmarGuardar()"
+                                    <a th:onclick="'confirmarGuardar('+${servicio.id}+')'"
                                             class="btn btn-primary">
                                         <i class='bx bx-save me-1'></i>
                                         Guardar
@@ -209,22 +209,27 @@
         button.parentElement.remove();
     }
 
-    function confirmarGuardar() {
-        Swal.fire({
-            title: '¿Está seguro?',
-            text: "No podrá revertir esta acción. Tenga en cuenta que de editarlo se eliminarán las reglas de flujo de todos los dispositivos asociados.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, guardar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const form = document.getElementById('formEditar');
-                form.submit();
-            }
-        });
+    function confirmarGuardar(id) {
+        if(id){
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "No podrá revertir esta acción. Tenga en cuenta que de editarlo se eliminarán las reglas de flujo de todos los dispositivos asociados.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, guardar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('formEditar');
+                    form.submit();
+                }
+            });
+        }else{
+            const form = document.getElementById('formEditar');
+            form.submit();
+        }
     }
 
     function confirmarCerrarSesion() {

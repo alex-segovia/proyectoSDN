@@ -58,11 +58,11 @@
                     <td class="text-center">
                                 <span th:if="${usuario.estado == 1}"
                                       class="badge bg-success">
-                                    <i class='bx bx-check-circle me-1'></i>Activo
+                                    <i class='bx bx-check-circle me-1'></i>Aceptado
                                 </span>
-                        <span th:unless="${usuario.estado == 1}"
+                        <span th:if="${usuario.estado == 2}"
                               class="badge bg-danger">
-                                    <i class='bx bx-x-circle me-1'></i>Inactivo
+                                    <i class='bx bx-x-circle me-1'></i>Rechazado
                                 </span>
                     </td>
                     <td>
@@ -72,17 +72,71 @@
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <!--<a th:href="@{/sdn/usuarios/editar/{id}(id=${usuario.id})}"
+                            <a th:href="@{/sdn/usuarios/editar/{id}(id=${usuario.id})}"
                                class="btn btn-warning btn-sm"
                                title="Editar">
                                 <i class='bx bx-edit'></i>
-                            </a>-->
+                            </a>
                             <button type="button"
                                     class="btn btn-danger btn-sm"
                                     title="Eliminar"
                                     th:onclick="'confirmarEliminar(' + ${usuario.id} + ')'">
                                 <i class='bx bx-trash'></i>
                             </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table th:if="${solicitudesUsuarios!=null}" id="usuariosPendientesTable" class="table table-striped" style="width:100%">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Nombres Completos</th>
+                    <th>DNI</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="usuario : ${solicitudesUsuarios}">
+                    <td th:text="${usuario.id}"></td>
+                    <td th:text="${usuario.username}"></td>
+                    <td th:text="${usuario.nombres + ' ' + usuario.apellidoPaterno + ' ' + usuario.apellidoMaterno}"></td>
+                    <td th:text="${usuario.dni}"></td>
+                    <td>
+                        <span class="badge bg-primary" th:text="${usuario.rol}"></span>
+                    </td>
+                    <td class="text-center">
+                                <span th:if="${usuario.estado == 0}"
+                                      class="badge bg-info">
+                                    <i class='bx bx-check-circle me-1'></i>Pendiente
+                                </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a th:href="@{/sdn/usuarios/ver/{id}(id=${usuario.id})}"
+                               class="btn btn-info btn-sm"
+                               title="Ver detalles">
+                                <i class='bx bx-show'></i>
+                            </a>
+                            <a th:onclick="'aceptarUsuario('+${usuario.id}+')'"
+                               class="btn btn-warning btn-sm"
+                               title="Aceptar">
+                                <i class='bx bx-check'></i>
+                            </a>
+                            <a th:onclick="'rechazarUsuario('+${usuario.id}+')'"
+                                    class="btn btn-danger btn-sm"
+                                    title="Rechazar">
+                                <i class='bx bx-x'></i>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -163,6 +217,50 @@
 
         // Establecer el orden después de la inicialización
         table.order([0, 'desc']).draw();
+
+        const tablePendiente = $('#usuariosPendientesTable').DataTable({
+            language: {
+                url: '/sdn/json/es.json'
+            },
+            responsive: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="bx bx-file me-1"></i> Excel',
+                    className: 'btn btn-success btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="bx bx-file-pdf me-1"></i> PDF',
+                    className: 'btn btn-danger btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="bx bx-printer me-1"></i> Imprimir',
+                    className: 'btn btn-primary btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    targets: -1,
+                    orderable: false,
+                    searchable: false
+                }
+            ]
+        });
+
+        // Establecer el orden después de la inicialización
+        tablePendiente.order([0, 'desc']).draw();
     });
 
     function confirmarEliminar(id) {
@@ -229,6 +327,96 @@
                         console.log(jsonResponse);
                         window.location.href = "/sdn/login";
                     }
+                });
+            }
+        });
+    }
+
+    function aceptarUsuario(id) {
+        Swal.fire({
+            title: 'Aprobar solicitud',
+            text: "Se aceptará el registro del usuario dentro de la red.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aprobar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/sdn/usuarios/solicitud/${id}/aprobar`,
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire({
+                                title: 'Aprobado',
+                                text: 'La solicitud ha sido aprobada exitosamente',
+                                icon: 'success'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: response.message,
+                                icon: 'error'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Ocurrió un error al procesar la solicitud',
+                            icon: 'error'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function rechazarUsuario(id) {
+        Swal.fire({
+            title: 'Rechazar solicitud',
+            text: "Se aceptará el registro del usuario dentro de la red.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Rechazar',
+            cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return rechazarSolicitud(id);
+            }
+        });
+    }
+
+    function rechazarSolicitud(id) {
+        return $.ajax({
+            url: `/sdn/usuarios/solicitud/${id}/rechazar`,
+            type: 'POST',
+            success: function(response) {
+                if (response.status === 'success') {
+                    Swal.fire({
+                        title: 'Rechazado',
+                        text: 'La solicitud ha sido rechazada',
+                        icon: 'success'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar la solicitud',
+                    icon: 'error'
                 });
             }
         });
