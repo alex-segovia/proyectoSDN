@@ -311,7 +311,7 @@ public class AuthController {
                 return ResponseEntity.ok(responseMap);
             } else if (response.getPacketType() == RadiusPacket.ACCESS_REJECT) {
                 System.out.println("Authentication failed");
-                responseMap.put("status","success");
+                responseMap.put("status","error");
                 responseMap.put("content",false);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
             } else {
