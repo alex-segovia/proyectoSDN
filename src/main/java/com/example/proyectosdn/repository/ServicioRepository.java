@@ -3,6 +3,7 @@ package com.example.proyectosdn.repository;
 import com.example.proyectosdn.entity.Servicio;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +17,9 @@ public interface ServicioRepository extends JpaRepository<Servicio, Integer> {
 
     @Query(nativeQuery = true, value = "select * from servicio where id_usuario_creador!=?1")
     List<Servicio> listarServiciosDisponbiles(Integer userId);
+
+    @Query("SELECT s FROM Servicio s WHERE s.usuarioCreador.id != :usuarioId")
+    List<Servicio> findServiciosNoPertenecientesAUsuario(@Param("usuarioId") Integer usuarioId);
+
+
 }

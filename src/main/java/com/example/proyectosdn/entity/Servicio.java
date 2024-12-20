@@ -3,16 +3,17 @@ package com.example.proyectosdn.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "servicio")
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"usuarioCreador", "servicioPorDispositivos", "puertoPorServicios"})
+@EqualsAndHashCode(exclude = {"usuarioCreador", "servicioPorDispositivos", "puertoPorServicios"})
 public class Servicio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

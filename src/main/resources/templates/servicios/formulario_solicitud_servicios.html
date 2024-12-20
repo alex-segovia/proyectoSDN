@@ -11,8 +11,6 @@
         <span>Usuario</span>
     </div>
 </header>
-
-<!-- Sidebar -->
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <!-- Container Principal -->
@@ -20,78 +18,76 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>
-                        <span>Solicitar Servicio</span>
+                        <span th:text="${servicio.id != null ? 'Editar Servicio' : 'Nuevo Servicio'}"></span>
                     </h5>
+                    <a th:href="@{/sdn/servicios}" class="btn btn-light btn-sm">
+                        <i class='bx bx-arrow-back me-1'></i>
+                        Volver
+                    </a>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/sdn/servicios/solicitar/guardar}"
-                          method="POST">
+                    <form th:action="@{/sdn/servicios/guardar}"
+                          th:object="${servicio}"
+                          method="POST"
+                          class="needs-validation"
+                          novalidate>
 
-                        <input type="hidden" th:name="id" th:value="${servicio.id}">
+                        <input type="hidden" th:field="*{id}">
 
                         <div class="row">
                             <!-- Nombre del Servicio -->
                             <div class="col-md-6 mb-3">
                                 <label for="nombre" class="form-label">Nombre del Servicio</label>
                                 <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class='bx bx-tag'></i>
-                                        </span>
+                                    <span class="input-group-text">
+                                        <i class='bx bx-tag'></i>
+                                    </span>
                                     <input type="text"
                                            class="form-control"
-                                           th:field="${servicio.nombre}"
+                                           th:field="*{nombre}"
+                                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid' : ''"
                                            required
                                            minlength="3"
                                            maxlength="45">
+                                    <div class="invalid-feedback"
+                                         th:errors="*{nombre}"
+                                         th:if="${#fields.hasErrors('nombre')}">
+                                        Error en el nombre
+                                    </div>
                                 </div>
                                 <small class="text-muted">El nombre debe tener entre 3 y 45 caracteres</small>
                             </div>
 
-                            <!-- Puerto -->
+                            <!-- Puertos -->
                             <div class="col-md-6 mb-3">
-                                <label for="puerto" class="form-label">Puerto</label>
-                                <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class='bx bx-plug'></i>
-                                        </span>
-                                    <input type="number"
-                                           class="form-control"
-                                           th:field="*{puerto}"
-                                           th:classappend="${#fields.hasErrors('puerto')} ? 'is-invalid' : ''"
-                                           min="1"
-                                           max="65535"
-                                           required>
-                                    <div class="invalid-feedback"
-                                         th:errors="*{puerto}"
-                                         th:if="${#fields.hasErrors('puerto')}">
-                                        Error en el puerto
-                                    </div>
-                                </div>
-                                <small class="text-muted">El puerto debe estar entre 1 y 65535</small>
-                            </div>
-
-                            <!-- Usuario Creador -->
-                            <div class="col-md-6 mb-3">
-                                <label for="usuarioCreador" class="form-label">Usuario Creador</label>
+                                <label class="form-label">Puertos</label>
                                 <div class="input-group">
                                     <span class="input-group-text">
-                                        <i class='bx bx-user'></i>
+                                        <i class='bx bx-plug'></i>
                                     </span>
-                                    <select class="form-select"
-                                            name="usuarioCreadorId"
-                                            id="usuarioCreador">
-                                        <option value="">Seleccione un usuario (temporal: hasta tener el sistema de autenticación)</option>
-                                        <option th:each="user : ${usuarios}"
-                                                th:value="${user.id}"
-                                                th:text="${user.nombres + ' ' + user.apellidoPaterno}"
-                                                th:selected="${servicio.usuarioCreador != null && servicio.usuarioCreador.id == user.id}">
-                                        </option>
-                                    </select>
-                                    <div class="invalid-feedback">
-                                        Por favor seleccione un usuario creador
+                                    <input type="number"
+                                           id="puertoInput"
+                                           class="form-control"
+                                           min="1"
+                                           max="65535">
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            onclick="agregarPuerto()">
+                                        <i class='bx bx-plus'></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">El puerto debe estar entre 1 y 65535</small>
+
+                                <!-- Lista de puertos -->
+                                <div id="listaPuertos" class="mt-2">
+                                    <div th:each="puerto : ${puertos}" class="badge bg-primary me-2 mb-2">
+                                        <span th:text="${puerto}"></span>
+                                        <input type="hidden" name="puertos" th:value="${puerto}">
+                                        <button type="button" class="btn-close btn-close-white"
+                                                onclick="eliminarPuerto(this)" aria-label="Close"></button>
                                     </div>
                                 </div>
                             </div>
@@ -100,9 +96,9 @@
                             <div class="col-md-6 mb-3">
                                 <label for="estado" class="form-label">Estado</label>
                                 <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class='bx bx-toggle-right'></i>
-                                        </span>
+                                    <span class="input-group-text">
+                                        <i class='bx bx-toggle-right'></i>
+                                    </span>
                                     <select class="form-select"
                                             th:field="*{estado}"
                                             required>
@@ -120,7 +116,7 @@
                                 <div class="d-flex justify-content-end gap-2">
                                     <a th:href="@{/sdn/servicios}"
                                        class="btn btn-secondary">
-                                        <i class='bx bx-arrow-back me-1'></i>
+                                        <i class='bx bx-x me-1'></i>
                                         Cancelar
                                     </a>
                                     <button type="submit"
@@ -141,7 +137,7 @@
 <!-- Scripts -->
 <div th:replace="~{fragments/scripts :: scripts}"></div>
 
-<!-- Scripts específicos del formulario -->
+<!-- Scripts específicos -->
 <script th:inline="javascript">
     // Validación del formulario
     (function() {
@@ -150,78 +146,73 @@
         Array.prototype.slice.call(forms)
             .forEach(function(form) {
                 form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
+                    // Verificar que haya al menos un puerto
+                    const puertos = document.getElementsByName('puertos');
+                    if (puertos.length === 0) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Debe agregar al menos un puerto',
+                            icon: 'error'
+                        });
+                        return;
                     }
-                    form.classList.add('was-validated')
-                }, false)
-            })
+
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+
+                    form.classList.add('was-validated');
+                }, false);
+            });
     })();
 
-    // Validación adicional del puerto
-    document.querySelector('input[name="puerto"]').addEventListener('input', function(e) {
-        let value = parseInt(e.target.value);
-        if (value < 1) {
-            e.target.value = 1;
-        } else if (value > 65535) {
-            e.target.value = 65535;
+    // Funciones para manejar puertos
+    function agregarPuerto() {
+        const puertoInput = document.getElementById('puertoInput');
+        const puerto = parseInt(puertoInput.value);
+
+        if (!puerto || puerto < 1 || puerto > 65535) {
+            Swal.fire({
+                title: 'Error',
+                text: 'El puerto debe estar entre 1 y 65535',
+                icon: 'error'
+            });
+            return;
         }
-    });
 
-    function confirmarCerrarSesion() {
-        Swal.fire({
-            title: 'Cierre de sesión',
-            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Este dispositivo',
-            cancelButtonText: 'Todos los dispositivos',
-            reverseButtons: true, // Invierte el orden de los botones
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Usuario eligió "Este dispositivo"
-                let data = {
-                    "type" : "one",
-                };
-
-                $.ajax({
-                    url: "/sdn/auth/logout",
-                    type: "POST",
-                    data: data,
-                    success: function (response) {
-                        console.log(response.content);
-                        window.location.href = "/sdn/login";
-                    },
-                    error: function (xhr, status, error) {
-                        const jsonResponse=xhr.responseText;
-                        console.log(jsonResponse);
-                        window.location.href = "/sdn/login";
-                    }
+        // Verificar si el puerto ya existe
+        const puertosExistentes = document.getElementsByName('puertos');
+        for (let input of puertosExistentes) {
+            if (parseInt(input.value) === puerto) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Este puerto ya ha sido agregado',
+                    icon: 'error'
                 });
-
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                // Usuario eligió "Todos los dispositivos"
-                let data = {
-                    "type" : "all",
-                };
-
-                $.ajax({
-                    url: "/sdn/auth/logout",
-                    type: "POST",
-                    data: data,
-                    success: function (response) {
-                        console.log(response.content);
-                        window.location.href = "/sdn/login";
-                    },
-                    error: function (xhr, status, error) {
-                        const jsonResponse=xhr.responseText;
-                        console.log(jsonResponse);
-                        window.location.href = "/sdn/login";
-                    }
-                });
+                return;
             }
-        });
+        }
+
+        // Crear nuevo elemento de puerto
+        const listaPuertos = document.getElementById('listaPuertos');
+        const div = document.createElement('div');
+        div.className = 'badge bg-primary me-2 mb-2';
+        div.innerHTML = `
+            ${puerto}
+            <input type="hidden" name="puertos" value="${puerto}">
+            <button type="button" class="btn-close btn-close-white"
+                    onclick="eliminarPuerto(this)" aria-label="Close"></button>
+        `;
+
+        listaPuertos.appendChild(div);
+        puertoInput.value = '';
+    }
+
+    function eliminarPuerto(button) {
+        button.parentElement.remove();
     }
 </script>
 </body>

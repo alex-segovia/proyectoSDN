@@ -3,9 +3,7 @@ package com.example.proyectosdn.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,9 +12,10 @@ import java.util.Set;
 
 @Entity
 @Table(name = "usuario")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@ToString(exclude = {"dispositivos", "servicios"})
+@EqualsAndHashCode(exclude = {"dispositivos", "servicios"})
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +29,7 @@ public class Usuario {
     private String attribute;
 
     @Column(name = "op", length = 2)
-    private String op = "=";  // Por defectoo
+    private String op = "=";
 
     @NotBlank(message = "El value es requerido")
     @Column(name = "value", nullable = false, length = 253)

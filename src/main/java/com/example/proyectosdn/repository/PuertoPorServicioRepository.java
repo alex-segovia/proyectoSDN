@@ -10,4 +10,6 @@ import java.util.List;
 public interface PuertoPorServicioRepository extends JpaRepository<PuertoPorServicio, Integer> {
     List<PuertoPorServicio> findByServicioId(Integer servicioId);
     List<PuertoPorServicio> findByPuertoId(Integer puertoId);
+
+    void deleteByServicioId(Integer servicioId);
 }

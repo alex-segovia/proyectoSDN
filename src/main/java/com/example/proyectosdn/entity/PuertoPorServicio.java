@@ -1,15 +1,14 @@
 package com.example.proyectosdn.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "puerto_por_servicio")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@ToString(exclude = {"servicio", "puerto"})
+@EqualsAndHashCode(exclude = {"servicio", "puerto"})
 public class PuertoPorServicio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

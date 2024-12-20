@@ -3,18 +3,17 @@ package com.example.proyectosdn.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "dispositivo")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@ToString(exclude = {"usuario", "servicioPorDispositivos"})
+@EqualsAndHashCode(exclude = {"usuario", "servicioPorDispositivos"})
 public class Dispositivo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

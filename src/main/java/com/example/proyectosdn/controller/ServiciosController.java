@@ -3,14 +3,9 @@ package com.example.proyectosdn.controller;
 import com.example.proyectosdn.dto.Servicio2DTO;
 import com.example.proyectosdn.dto.ServicioDTO;
 import com.example.proyectosdn.dto.UsuarioDTO;
-import com.example.proyectosdn.entity.PuertoPorServicio;
-import com.example.proyectosdn.entity.Servicio;
-import com.example.proyectosdn.entity.ServicioPorDispositivo;
-import com.example.proyectosdn.entity.Usuario;
-import com.example.proyectosdn.repository.ServicioPorDispositivoRepository;
-import com.example.proyectosdn.repository.ServicioRepository;
-import com.example.proyectosdn.repository.SesionActivaRepository;
-import com.example.proyectosdn.repository.UsuarioRepository;
+import com.example.proyectosdn.entity.*;
+import com.example.proyectosdn.repository.*;
+import com.example.proyectosdn.service.UsuarioSesionService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -24,19 +19,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/sdn/servicios")
 @Slf4j
 public class ServiciosController {
-    @Autowired
-    private SesionActivaRepository sesionActivaRepository;
-
     @Autowired
     private ServicioRepository servicioRepository;
 
@@ -46,85 +35,105 @@ public class ServiciosController {
     @Autowired
     private ServicioPorDispositivoRepository servicioPorDispositivoRepository;
 
-    // Listar servicios
+    @Autowired
+    private PuertoRepository puertoRepository;
+
+    @Autowired
+    private DispositivoRepository dispositivoRepository;
+
+    @Autowired
+    private PuertoPorServicioRepository puertoPorServicioRepository;
+
+    @Autowired
+    private UsuarioSesionService usuarioSesionService;
+
     @GetMapping("")
     public String listarServicios(Model model, HttpServletRequest httpRequest) {
-        String ipAdd = httpRequest.getHeader("X-Real-IP");
-        if (ipAdd == null || ipAdd.isEmpty()) {
-            ipAdd = httpRequest.getHeader("X-Forwarded-For");
-            if (ipAdd == null || ipAdd.isEmpty()) {
-                ipAdd = httpRequest.getRemoteAddr();
-            }
-        }
-        String rolUsuario = sesionActivaRepository.userRolPorIp(ipAdd)!=null?sesionActivaRepository.userRolPorIp(ipAdd):"asd";
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(httpRequest);
 
-        if(rolUsuario.equals("Superadmin")){
-            log.info("Listando todos los servicios");
-            List<Servicio> servicios = servicioRepository.findAll();
-            List<ServicioDTO> dtos = servicios.stream()
+        if ("Alumno".equals(usuarioActual.getRol())) {
+            List<Servicio> serviciosDisponibles = servicioRepository.findServiciosNoPertenecientesAUsuario(usuarioActual.getId());
+            List<ServicioDTO> dtosDisponibles = serviciosDisponibles.stream()
                     .map(this::convertToDTO)
                     .collect(Collectors.toList());
-            model.addAttribute("serviciosDisponiblesSuperadmin", dtos);
-        }else{
-            log.info("Listando todos mis servicios");
-            List<Servicio> servicios = servicioRepository.findByUsuarioCreadorId(sesionActivaRepository.userIdPorIp(ipAdd));
-            List<ServicioDTO> dtos = servicios.stream()
+            model.addAttribute("serviciosDisponibles", dtosDisponibles);
+        } else {
+            List<Servicio> misServicios = servicioRepository.findByUsuarioCreadorId(usuarioActual.getId());
+            List<ServicioDTO> dtosPropios = misServicios.stream()
                     .map(this::convertToDTO)
                     .collect(Collectors.toList());
-            model.addAttribute("servicios", dtos);
-            log.info("Listando los servicios disponibles");
-            List<Servicio> servicios2 = servicioRepository.listarServiciosDisponbiles(sesionActivaRepository.userIdPorIp(ipAdd));
-            List<ServicioDTO> dtos2 = servicios2.stream()
+            model.addAttribute("servicios", dtosPropios);
+
+            List<Servicio> serviciosDisponibles = servicioRepository.findServiciosNoPertenecientesAUsuario(usuarioActual.getId());
+            List<ServicioDTO> dtosDisponibles = serviciosDisponibles.stream()
                     .map(this::convertToDTO)
                     .collect(Collectors.toList());
-            model.addAttribute("serviciosDisponibles", dtos2);
+            model.addAttribute("serviciosDisponibles", dtosDisponibles);
         }
+
         model.addAttribute("active", "servicios");
+        model.addAttribute("rolUsuario", usuarioActual.getRol());
         return "servicios/lista_servicios";
     }
 
-    // Mostrar formulario de nuevo servicio
     @GetMapping("/nuevo")
-    public String mostrarFormularioNuevo(Model model) {
-        log.info("Mostrando formulario de nuevo servicio");
+    public String mostrarFormularioNuevo(Model model, HttpServletRequest request) {
+        Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+        if ("Alumno".equals(usuario.getRol())) {
+            return "redirect:/sdn/servicios";
+        }
+
         model.addAttribute("servicio", new Servicio());
-        model.addAttribute("usuarios", usuarioRepository.findAll());
+        model.addAttribute("puertos", new ArrayList<>());
         model.addAttribute("active", "servicios");
-        return "servicios/formulario_servicios";
+        return "servicios/formulario_solicitud_servicios";
     }
 
-    // Mostrar formulario de edición
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
-        log.info("Mostrando formulario de edición para servicio ID: {}", id);
+    public String mostrarFormularioEditar(@PathVariable Integer id, Model model, HttpServletRequest request) {
+        Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+        if ("Alumno".equals(usuario.getRol())) {
+            return "redirect:/sdn/servicios";
+        }
 
         try {
             Servicio servicio = servicioRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
+            // Verificar que el usuario sea el creador del servicio
+            if (!servicio.getUsuarioCreador().getId().equals(usuario.getId())) {
+                return "redirect:/sdn/servicios";
+            }
+
+            List<Integer> puertos = servicio.getPuertoPorServicios().stream()
+                    .map(pps -> pps.getPuerto().getNumeroPuerto())
+                    .collect(Collectors.toList());
+
             model.addAttribute("servicio", servicio);
-            model.addAttribute("usuarios", usuarioRepository.findAll());
+            model.addAttribute("puertos", puertos);
             model.addAttribute("active", "servicios");
-            return "servicios/formulario_servicios";
+            return "servicios/formulario_solicitud_servicios";
         } catch (EntityNotFoundException e) {
-            log.error("Error al buscar servicio: {}", e.getMessage());
-            return "redirect:/servicios";
+            return "redirect:/sdn/servicios";
         }
     }
 
-    // Guardar servicio (crear/actualizar)
     @PostMapping("/guardar")
-    public String guardarServicio(@Valid Servicio servicio,
+    public String guardarServicio(@Valid @ModelAttribute("servicio") Servicio servicio,
                                   BindingResult result,
-                                  @RequestParam(name = "usuarioCreadorId", required = false) Integer usuarioCreadorId,
+                                  @RequestParam("puertos") List<Integer> puertos,
                                   Model model,
-                                  RedirectAttributes redirectAttributes) {
-        log.info("Guardando servicio: {}", servicio);
+                                  RedirectAttributes redirectAttributes,
+                                  HttpServletRequest request) {
+        Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+        if ("Alumno".equals(usuario.getRol())) {
+            return "redirect:/sdn/servicios";
+        }
 
         if (result.hasErrors()) {
-            model.addAttribute("usuarios", usuarioRepository.findAll());
+            model.addAttribute("puertos", puertos);
             model.addAttribute("active", "servicios");
-            return "servicios/formulario_servicios";
+            return "servicios/formulario_solicitud_servicios";
         }
 
         try {
@@ -132,87 +141,181 @@ public class ServiciosController {
             Optional<Servicio> servicioExistente = servicioRepository.findByNombre(servicio.getNombre());
             if (servicioExistente.isPresent() && !servicioExistente.get().getId().equals(servicio.getId())) {
                 result.rejectValue("nombre", "error.servicio", "Ya existe un servicio con este nombre");
-                model.addAttribute("usuarios", usuarioRepository.findAll());
+                model.addAttribute("puertos", puertos);
                 model.addAttribute("active", "servicios");
-                return "servicios/formulario_servicios";
+                return "servicios/formulario_solicitud_servicios";
             }
 
-            // Asignar usuario creador si se proporcionó uno
-            if (usuarioCreadorId != null) {
-                Usuario usuarioCreador = usuarioRepository.findById(usuarioCreadorId)
-                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-                servicio.setUsuarioCreador(usuarioCreador);
-            } else {
-                servicio.setUsuarioCreador(null);
+            // Asignar usuario creador
+            servicio.setUsuarioCreador(usuario);
+
+            // Guardar servicio
+            Servicio servicioGuardado = servicioRepository.save(servicio);
+
+            // Eliminar puertos antiguos si es edición
+            if (servicio.getId() != null) {
+                puertoPorServicioRepository.deleteByServicioId(servicio.getId());
             }
 
-            servicioRepository.save(servicio);
-            redirectAttributes.addFlashAttribute("mensaje", "Servicio guardado exitosamente");
+            // Guardar nuevos puertos
+            for (Integer numeroPuerto : puertos) {
+                Puerto puerto = puertoRepository.findByNumeroPuerto(numeroPuerto)
+                        .orElseGet(() -> {
+                            Puerto nuevoPuerto = new Puerto();
+                            nuevoPuerto.setNumeroPuerto(numeroPuerto);
+                            return puertoRepository.save(nuevoPuerto);
+                        });
 
+                PuertoPorServicio pps = new PuertoPorServicio();
+                pps.setPuerto(puerto);
+                pps.setServicio(servicioGuardado);
+                puertoPorServicioRepository.save(pps);
+            }
+
+            redirectAttributes.addFlashAttribute("mensaje",
+                    servicio.getId() == null ? "Servicio creado exitosamente" : "Servicio actualizado exitosamente");
         } catch (Exception e) {
-            log.error("Error al guardar servicio: {}", e.getMessage());
+            log.error("Error al guardar servicio: ", e);
             redirectAttributes.addFlashAttribute("error", "Error al guardar el servicio");
         }
 
-        return "redirect:/servicios";
+        return "redirect:/sdn/servicios";
     }
 
-    // Ver detalles del servicio
     @GetMapping("/ver/{id}")
-    public String verServicio(@PathVariable Integer id, Model model) {
-        log.info("Mostrando detalles del servicio ID: {}", id);
-
+    public String verServicio(@PathVariable Integer id, Model model, HttpServletRequest request) {
         try {
             Servicio servicio = servicioRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+            boolean esCreador = servicio.getUsuarioCreador().getId().equals(usuario.getId());
+
             model.addAttribute("servicio", convertToDTO2(servicio));
+            model.addAttribute("esCreador", esCreador);
             model.addAttribute("active", "servicios");
             return "servicios/ver_servicio";
         } catch (EntityNotFoundException e) {
-            log.error("Error al buscar servicio: {}", e.getMessage());
-            return "redirect:/servicios";
+            return "redirect:/sdn/servicios";
         }
     }
 
-    // Eliminar servicio
-    @PostMapping("/eliminar/{id}")
-    public String eliminarServicio(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        log.info("Eliminando servicio ID: {}", id);
+    @PostMapping("/{id}/aprobar-solicitud")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> aprobarSolicitud(
+            @PathVariable Integer id,
+            @RequestParam Integer dispositivoId,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
 
         try {
-            Servicio servicio = servicioRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+            ServicioPorDispositivo spd = servicioPorDispositivoRepository
+                    .findByServicioIdAndDispositivoId(id, dispositivoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada"));
 
-            // Verificar si el servicio está siendo usado por algún dispositivo
-            List<ServicioPorDispositivo> asociaciones = servicioPorDispositivoRepository
-                    .findByServicioId(servicio.getId());
-
-            if (!asociaciones.isEmpty()) {
-                redirectAttributes.addFlashAttribute("error",
-                        "No se puede eliminar el servicio porque está siendo usado por " +
-                                asociaciones.size() + " dispositivo(s)");
-                return "redirect:/servicios";
+            // Verificar que el usuario sea el creador del servicio
+            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
+                throw new RuntimeException("No tienes permisos para aprobar esta solicitud");
             }
 
-            servicioRepository.delete(servicio);
-            redirectAttributes.addFlashAttribute("mensaje", "Servicio eliminado exitosamente");
+            spd.setEstado(1); // Aprobado
+            servicioPorDispositivoRepository.save(spd);
 
-        } catch (EntityNotFoundException e) {
-            log.error("Error al eliminar servicio: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el servicio");
+            response.put("status", "success");
+            response.put("message", "Solicitud aprobada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-
-        return "redirect:/servicios";
     }
 
-    // Manejador de excepciones para este controlador
-    @ExceptionHandler(EntityNotFoundException.class)
-    public String handleEntityNotFoundException(EntityNotFoundException ex,
-                                                RedirectAttributes redirectAttributes) {
-        log.error("Error de entidad no encontrada: {}", ex.getMessage());
-        redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        return "redirect:/servicios";
+    @PostMapping("/{id}/rechazar-solicitud")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> rechazarSolicitud(
+            @PathVariable Integer id,
+            @RequestParam Integer dispositivoId,
+            @RequestParam String motivo,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+            ServicioPorDispositivo spd = servicioPorDispositivoRepository
+                    .findByServicioIdAndDispositivoId(id, dispositivoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada"));
+
+            // Verificar que el usuario sea el creador del servicio
+            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
+                throw new RuntimeException("No tienes permisos para rechazar esta solicitud");
+            }
+
+            spd.setEstado(2); // Rechazado
+            spd.setMotivo(motivo);
+            servicioPorDispositivoRepository.save(spd);
+
+            response.put("status", "success");
+            response.put("message", "Solicitud rechazada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/solicitar")
+    @ResponseBody
+    public ResponseEntity<Map<String,Object>> solicitarServicio(
+            @RequestParam("id") Integer servicioId,
+            @RequestParam("dispositivoId") Integer dispositivoId,
+            @RequestParam("motivo") String motivo,
+            HttpServletRequest request) {
+        Map<String,Object> response = new HashMap<>();
+
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+
+            // Verificar que el servicio existe
+            Servicio servicio = servicioRepository.findById(servicioId)
+                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
+
+            // Verificar que el dispositivo pertenece al usuario
+            Dispositivo dispositivo = dispositivoRepository.findById(dispositivoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
+
+            if (!dispositivo.getUsuario().getId().equals(usuario.getId())) {
+                throw new RuntimeException("El dispositivo no pertenece al usuario");
+            }
+
+            // Verificar si ya existe una solicitud
+            Optional<ServicioPorDispositivo> solicitudExistente =
+                    servicioPorDispositivoRepository.findByServicioIdAndDispositivoId(servicioId, dispositivoId);
+
+            if (solicitudExistente.isPresent()) {
+                throw new RuntimeException("Ya existe una solicitud para este servicio y dispositivo");
+            }
+
+            // Crear nueva solicitud
+            ServicioPorDispositivo solicitud = new ServicioPorDispositivo();
+            solicitud.setServicio(servicio);
+            solicitud.setDispositivo(dispositivo);
+            solicitud.setEstado(0); // Pendiente
+            solicitud.setMotivo(motivo);
+
+            servicioPorDispositivoRepository.save(solicitud);
+
+            response.put("status", "success");
+            response.put("message", "Solicitud enviada correctamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al solicitar servicio: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     private ServicioDTO convertToDTO(Servicio servicio) {
@@ -261,35 +364,5 @@ public class ServiciosController {
         dto.setServicioPorDispositivo(servicio.getServicioPorDispositivos());
 
         return dto;
-    }
-
-    //Falta completar uwu: que se obtenga el id del dispositvo y se guarde en base de datos en la tabla servicio_por_dispositivo, con estado 0
-    @PostMapping("/solicitar")
-    public ResponseEntity<Map<String,Object>> solicitarServicio(@RequestParam("id") String id, HttpServletRequest httpRequest) {
-        Map<String,Object>responseMap=new HashMap<>();
-        try{
-            String ipAdd = httpRequest.getHeader("X-Real-IP");
-            if (ipAdd == null || ipAdd.isEmpty()) {
-                ipAdd = httpRequest.getHeader("X-Forwarded-For");
-                if (ipAdd == null || ipAdd.isEmpty()) {
-                    ipAdd = httpRequest.getRemoteAddr();
-                }
-            }
-            Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
-            if(idSesionActiva!=null){
-
-                return ResponseEntity.ok(responseMap);
-            }else{
-                responseMap.put("status","error");
-                responseMap.put("content","Este dispositivo no tiene una sesión activa");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            System.out.println("Unexpected response type: " + e.getMessage());
-            responseMap.put("status","error");
-            responseMap.put("content",e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
-        }
     }
 }
