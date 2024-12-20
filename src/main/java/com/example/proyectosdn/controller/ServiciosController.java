@@ -333,6 +333,56 @@ public class ServiciosController {
         }
     }
 
+    @PostMapping("/agregarDispositivoAServicio")
+    @ResponseBody
+    public ResponseEntity<Map<String,Object>> agregarDispositivoAServicio(
+            @RequestParam("id") Integer servicioId,
+            @RequestParam("dispositivoId") Integer dispositivoId,
+            HttpServletRequest request) {
+        Map<String,Object> response = new HashMap<>();
+
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+
+            // Verificar que el servicio existe
+            Servicio servicio = servicioRepository.findById(servicioId)
+                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
+
+            // Verificar que el dispositivo pertenece al usuario
+            Dispositivo dispositivo = dispositivoRepository.findById(dispositivoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
+
+            if (!dispositivo.getUsuario().getId().equals(usuario.getId())) {
+                throw new RuntimeException("El dispositivo no pertenece al usuario");
+            }
+
+            // Verificar si ya existe una solicitud
+            Optional<ServicioPorDispositivo> solicitudExistente =
+                    servicioPorDispositivoRepository.findByServicioIdAndDispositivoId(servicioId, dispositivoId);
+
+            if (solicitudExistente.isPresent()) {
+                throw new RuntimeException("Ya existe la asociación para el dispositivo");
+            }
+
+            // Crear nueva solicitud
+            ServicioPorDispositivo solicitud = new ServicioPorDispositivo();
+            solicitud.setServicio(servicio);
+            solicitud.setDispositivo(dispositivo);
+            solicitud.setEstado(1); // Aceptado
+
+            servicioPorDispositivoRepository.save(solicitud);
+
+            response.put("status", "success");
+            response.put("message", "Dispositivo añadido correctamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al añadir dispositivo: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     @PostMapping("/solicitud/{id}/aprobar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> aprobarSolicitud(

@@ -165,6 +165,10 @@
                     <h5 class="card-title mb-0">
                         <i class='bx bx-devices me-2'></i>
                         Dispositivos con Acceso
+                        <button class="btn btn-light btn-sm float-end"
+                                id="addDeviceButton">
+                            <i class="bx bx-plus-circle"></i> Añadir Dispositivo
+                        </button>
                     </h5>
                 </div>
                 <div class="card-body">
@@ -177,31 +181,24 @@
                                 <th>Dispositivo</th>
                                 <th>MAC</th>
                                 <th>Estado</th>
-                                <th>Motivo</th>
                                 <th th:if="${esCreador}">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr th:each="apd : ${servicio.servicioPorDispositivo}">
                                 <td th:text="${apd.dispositivo.usuario.nombres + ' ' +
-                                                 apd.dispositivo.usuario.apellidoPaterno}"></td>
+                                     apd.dispositivo.usuario.apellidoPaterno}"></td>
                                 <td th:text="${apd.dispositivo.nombre}"></td>
                                 <td th:text="${apd.dispositivo.mac}"></td>
                                 <td>
-                                        <span th:if="${apd.estado == 1}"
-                                              class="badge bg-success">Activo</span>
-                                    <span th:if="${apd.estado == 0}"
-                                          class="badge bg-warning">Pendiente</span>
-                                    <span th:if="${apd.estado == 2}"
-                                          class="badge bg-danger">Rechazado</span>
+                                    <span th:if="${apd.estado == 1}" class="badge bg-success">Activo</span>
+                                    <span th:if="${apd.estado == 0}" class="badge bg-warning">Pendiente</span>
+                                    <span th:if="${apd.estado == 2}" class="badge bg-danger">Rechazado</span>
                                 </td>
-                                <td th:text="${apd.motivo}"></td>
                                 <td th:if="${esCreador}">
-                                    <button th:if="${apd.estado == 1}"
-                                            type="button"
+                                    <button th:if="${apd.estado == 1}" type="button"
                                             class="btn btn-danger btn-sm revocar-acceso"
-                                            th:data-id="${apd.id}"
-                                            title="Revocar acceso">
+                                            th:data-id="${apd.id}" title="Revocar acceso">
                                         <i class='bx bx-lock-alt'></i>
                                     </button>
                                 </td>
@@ -216,6 +213,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -285,6 +283,105 @@
             confirmButtonText: 'Entendido'
         });
     }
+
+    function mostrarModalAgregarDispositivo(servicioId) {
+        // Cargar dispositivos disponibles del usuario actual
+        $.ajax({
+            url: '/sdn/servicios/mis-dispositivos',
+            type: 'GET',
+            success: function(dispositivos) {
+                if (dispositivos.length === 0) {
+                    Swal.fire({
+                        title: 'Información',
+                        text: 'No tienes dispositivos disponibles para añadir.',
+                        icon: 'info',
+                    });
+                    return;
+                }
+
+                // Mostrar el modal para seleccionar dispositivo
+                Swal.fire({
+                    title: 'Añadir Dispositivo al Servicio',
+                    html: `
+                    <div class="mb-3">
+                        <label for="dispositivoId" class="form-label">Seleccione un dispositivo</label>
+                        <select id="dispositivoId" class="form-select">
+                            <option value="">Seleccione...</option>
+                            ${dispositivos.map(d => `
+                                <option value="${d.id}">${d.nombre} (${d.mac})</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Añadir',
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        const dispositivoId = document.getElementById('dispositivoId').value;
+
+                        if (!dispositivoId) {
+                            Swal.showValidationMessage('Debe seleccionar un dispositivo');
+                            return false;
+                        }
+
+                        return { dispositivoId };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        agregarDispositivo(servicioId, result.value.dispositivoId);
+                    }
+                });
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudieron cargar los dispositivos. Por favor intente nuevamente.',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+
+    function agregarDispositivo(servicioId, dispositivoId) {
+        $.ajax({
+            url: '/sdn/servicios/agregarDispositivoAServicio',
+            type: 'POST',
+            data: {
+                id: servicioId,
+                dispositivoId: dispositivoId,
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: 'Dispositivo añadido correctamente',
+                        icon: 'success'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message || 'Error al añadir dispositivo',
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Error',
+                    text: xhr.responseJSON?.message || 'Error al añadir dispositivo',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+
+    // Vincular botón al evento
+    $('#addDeviceButton').click(() => {
+        const servicioId = $('#dispositivosTable').data('servicio-id');
+        mostrarModalAgregarDispositivo(servicioId);
+    });
 
     function aprobarSolicitud(id) {
         Swal.fire({
