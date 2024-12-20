@@ -163,7 +163,7 @@
             </div>
 
             <!-- Card de Dispositivos Asociados -->
-            <div class="card">
+            <div class="card" th:if="${esCreador}">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-devices me-2'></i>
@@ -177,7 +177,7 @@
                 <div class="card-body">
                     <div class="table-responsive"
                          th:if="${!#lists.isEmpty(servicio.servicioPorDispositivo)}">
-                        <table class="table table-hover" id="dispositivosTable">
+                        <table class="table table-hover" id="dispositivosTable" th:data-servicio-id="${servicio.id}">
                             <thead>
                             <tr>
                                 <th>Usuario</th>
@@ -288,6 +288,7 @@
     }
 
     function mostrarModalAgregarDispositivo(servicioId) {
+        console.log("servicio:"+servicioId);
         // Cargar dispositivos disponibles del usuario actual
         $.ajax({
             url: '/sdn/servicios/mis-dispositivos',
@@ -346,6 +347,8 @@
     }
 
     function agregarDispositivo(servicioId, dispositivoId) {
+        console.log(servicioId);
+        console.log(dispositivoId);
         $.ajax({
             url: '/sdn/servicios/agregarDispositivoAServicio',
             type: 'POST',
@@ -382,8 +385,12 @@
 
     // Vincular botón al evento
     $('#addDeviceButton').click(() => {
-        const servicioId = $('#dispositivosTable').data('servicio-id');
-        mostrarModalAgregarDispositivo(servicioId);
+        const servicioId = $('#dispositivosTable').attr('data-servicio-id');
+        if(servicioId){
+            mostrarModalAgregarDispositivo(servicioId);
+        }else{
+            console.error("No se encontró el ID del servicio");
+        }
     });
 
     function aprobarSolicitud(id) {

@@ -248,6 +248,9 @@ public class ServiciosController {
             usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
             usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
             usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
+            usuarioDTO.setApellidoMaterno(servicio.getUsuarioCreador().getApellidoMaterno());
+            usuarioDTO.setDni(servicio.getUsuarioCreador().getDni());
+            usuarioDTO.setRol(servicio.getUsuarioCreador().getRol());
             dto.setUsuarioCreador(usuarioDTO);
         }
 

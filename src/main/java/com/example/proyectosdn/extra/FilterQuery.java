@@ -36,8 +36,8 @@ public class FilterQuery implements Filter {
         Integer idSesion=sesionActivaRepository.idSesionActivaPorIp(ipAdd);
         System.out.println("El ID de sesión actual es: "+idSesion);
 
-        chain.doFilter(request, response);
-        /*
+        //chain.doFilter(request, response);
+
         if(idSesion!=null){
             if(url.equals("/sdn/login")){
                 httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/dispositivos"); // Redirigir si no cumple la condición
@@ -53,6 +53,6 @@ public class FilterQuery implements Filter {
             }
         }
 
-         */
+
     }
 }
