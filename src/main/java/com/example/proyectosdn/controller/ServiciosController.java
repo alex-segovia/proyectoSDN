@@ -391,5 +391,106 @@ public class ServiciosController {
         }
     }
 
+    @PostMapping("/solicitud/{id}/aprobar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> aprobarSolicitud(
+            @PathVariable Integer id,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+
+            ServicioPorDispositivo spd = servicioPorDispositivoRepository
+                    .findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada"));
+
+            // Verificar que el usuario sea el creador del servicio
+            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
+                throw new RuntimeException("No tienes permisos para aprobar esta solicitud");
+            }
+
+            spd.setEstado(1); // Aprobado
+            servicioPorDispositivoRepository.save(spd);
+
+            response.put("status", "success");
+            response.put("message", "Solicitud aprobada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al aprobar solicitud: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/solicitud/{id}/rechazar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> rechazarSolicitud(
+            @PathVariable Integer id,
+            @RequestParam String motivo,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+
+            ServicioPorDispositivo spd = servicioPorDispositivoRepository
+                    .findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada"));
+
+            // Verificar que el usuario sea el creador del servicio
+            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
+                throw new RuntimeException("No tienes permisos para rechazar esta solicitud");
+            }
+
+            spd.setEstado(2); // Rechazado
+            spd.setMotivo(motivo);
+            servicioPorDispositivoRepository.save(spd);
+
+            response.put("status", "success");
+            response.put("message", "Solicitud rechazada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al rechazar solicitud: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/acceso/{id}/revocar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> revocarAcceso(
+            @PathVariable Integer id,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+
+            ServicioPorDispositivo spd = servicioPorDispositivoRepository
+                    .findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Acceso no encontrado"));
+
+            // Verificar que el usuario sea el creador del servicio
+            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
+                throw new RuntimeException("No tienes permisos para revocar este acceso");
+            }
+
+            // Eliminar el acceso
+            servicioPorDispositivoRepository.delete(spd);
+
+            response.put("status", "success");
+            response.put("message", "Acceso revocado exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al revocar acceso: ", e);
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
 
 }

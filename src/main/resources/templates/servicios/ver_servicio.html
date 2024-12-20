@@ -11,8 +11,6 @@
         <span>Usuario</span>
     </div>
 </header>
-
-<!-- Sidebar -->
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <!-- Container Principal -->
@@ -49,19 +47,25 @@
 
                                     <dt class="col-sm-4">Puertos:</dt>
                                     <dd class="col-sm-8">
-                                        <span style="cursor: pointer" th:attr="data-id=${servicio.id}, data-nombre=${servicio.nombre}, data-puertos=${servicio.puertos}" onclick="mostrarPuertos(this)" class="badge bg-secondary">Ver puertos</span>
+                                        <span style="cursor: pointer"
+                                              class="badge bg-secondary ver-puertos"
+                                              th:data-id="${servicio.id}"
+                                              th:data-nombre="${servicio.nombre}"
+                                              th:data-puertos="${servicio.puertos}">
+                                            Ver puertos
+                                        </span>
                                     </dd>
 
                                     <dt class="col-sm-4">Estado:</dt>
                                     <dd class="col-sm-8">
-                                            <span th:if="${servicio.estado == 1}"
-                                                  class="badge bg-success">
-                                                <i class='bx bx-check-circle me-1'></i>Activo
-                                            </span>
+                                        <span th:if="${servicio.estado == 1}"
+                                              class="badge bg-success">
+                                            <i class='bx bx-check-circle me-1'></i>Activo
+                                        </span>
                                         <span th:unless="${servicio.estado == 1}"
                                               class="badge bg-danger">
-                                                <i class='bx bx-x-circle me-1'></i>Inactivo
-                                            </span>
+                                            <i class='bx bx-x-circle me-1'></i>Inactivo
+                                        </span>
                                     </dd>
                                 </dl>
                             </div>
@@ -85,7 +89,8 @@
 
                                         <dt class="col-sm-4">Rol:</dt>
                                         <dd class="col-sm-8">
-                                            <span class="badge bg-primary" th:text="${servicio.usuarioCreador.rol}"></span>
+                                            <span class="badge bg-primary"
+                                                  th:text="${servicio.usuarioCreador.rol}"></span>
                                         </dd>
 
                                         <dt class="col-sm-4">Username:</dt>
@@ -93,59 +98,120 @@
                                     </dl>
                                 </div>
                             </div>
-                            <div th:unless="${servicio.usuarioCreador != null}"
-                                 class="alert alert-warning">
-                                <i class='bx bx-error me-2'></i>
-                                No hay usuario creador asignado
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Card de Dispositivos -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">
+            <!-- Card de Solicitudes Pendientes (Solo visible para el creador) -->
+            <div class="card mb-4" th:if="${esCreador}">
+                <div class="card-header bg-warning text-white">
                     <h5 class="card-title mb-0">
-                        <i class='bx bx-devices me-2'></i>
-                        Dispositivos Asociados
+                        <i class='bx bx-time-five me-2'></i>
+                        Solicitudes Pendientes
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive" th:if="${servicio.servicioPorDispositivo!=null}">
-                        <table class="table table-hover" id="dispositivosTable">
+                    <div th:if="${!#lists.isEmpty(servicio.solicitudesPendientes)}"
+                         class="table-responsive">
+                        <table class="table table-hover" id="solicitudesTable">
                             <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>MAC</th>
                                 <th>Usuario</th>
-                                <th>Estado</th>
+                                <th>Dispositivo</th>
+                                <th>MAC</th>
                                 <th>Motivo</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="apd : ${servicio.servicioPorDispositivo}">
-                                <td th:text="${apd.dispositivo.id}"></td>
-                                <td th:text="${apd.dispositivo.nombre}"></td>
-                                <td th:text="${apd.dispositivo.mac}"></td>
-                                <td th:text="${apd.dispositivo.usuario != null ?
-                                              apd.dispositivo.usuario.nombres + ' ' +
-                                              apd.dispositivo.usuario.apellidoPaterno + ' (' +
-                                              apd.dispositivo.usuario.username + ')' : 'No asignado'}">
-                                </td>
+                            <tr th:each="solicitud : ${servicio.solicitudesPendientes}">
+                                <td th:text="${solicitud.dispositivo.usuario.nombres + ' ' +
+                                                 solicitud.dispositivo.usuario.apellidoPaterno}"></td>
+                                <td th:text="${solicitud.dispositivo.nombre}"></td>
+                                <td th:text="${solicitud.dispositivo.mac}"></td>
+                                <td th:text="${solicitud.motivo}"></td>
+                                <td th:text="${#temporals.format(solicitud.fechaSolicitud, 'dd/MM/yyyy HH:mm')}"></td>
                                 <td>
-                                            <span th:if="${apd.dispositivo.estado == 1}"
-                                                  class="badge bg-success">Activo</span>
-                                    <span th:unless="${apd.dispositivo.estado == 1}"
-                                          class="badge bg-danger">Inactivo</span>
+                                    <div class="btn-group">
+                                        <button type="button"
+                                                class="btn btn-success btn-sm aprobar-solicitud"
+                                                th:data-id="${solicitud.id}"
+                                                title="Aprobar">
+                                            <i class='bx bx-check'></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm rechazar-solicitud"
+                                                th:data-id="${solicitud.id}"
+                                                title="Rechazar">
+                                            <i class='bx bx-x'></i>
+                                        </button>
+                                    </div>
                                 </td>
-                                <td th:text="${apd.motivo}"></td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div th:if="${servicio.servicioPorDispositivo==null}"
+                    <div th:if="${#lists.isEmpty(servicio.solicitudesPendientes)}"
+                         class="alert alert-info">
+                        <i class='bx bx-info-circle me-2'></i>
+                        No hay solicitudes pendientes
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Dispositivos Asociados -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class='bx bx-devices me-2'></i>
+                        Dispositivos con Acceso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive"
+                         th:if="${!#lists.isEmpty(servicio.servicioPorDispositivo)}">
+                        <table class="table table-hover" id="dispositivosTable">
+                            <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Dispositivo</th>
+                                <th>MAC</th>
+                                <th>Estado</th>
+                                <th>Motivo</th>
+                                <th th:if="${esCreador}">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="apd : ${servicio.servicioPorDispositivo}">
+                                <td th:text="${apd.dispositivo.usuario.nombres + ' ' +
+                                                 apd.dispositivo.usuario.apellidoPaterno}"></td>
+                                <td th:text="${apd.dispositivo.nombre}"></td>
+                                <td th:text="${apd.dispositivo.mac}"></td>
+                                <td>
+                                        <span th:if="${apd.estado == 1}"
+                                              class="badge bg-success">Activo</span>
+                                    <span th:if="${apd.estado == 0}"
+                                          class="badge bg-warning">Pendiente</span>
+                                    <span th:if="${apd.estado == 2}"
+                                          class="badge bg-danger">Rechazado</span>
+                                </td>
+                                <td th:text="${apd.motivo}"></td>
+                                <td th:if="${esCreador}">
+                                    <button th:if="${apd.estado == 1}"
+                                            type="button"
+                                            class="btn btn-danger btn-sm revocar-acceso"
+                                            th:data-id="${apd.id}"
+                                            title="Revocar acceso">
+                                        <i class='bx bx-lock-alt'></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${#lists.isEmpty(servicio.servicioPorDispositivo)}"
                          class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
                         Este servicio no tiene dispositivos asociados
@@ -162,105 +228,211 @@
 <!-- Scripts específicos -->
 <script th:inline="javascript">
     $(document).ready(function() {
-        const table = $('#dispositivosTable').DataTable({
+        // Inicializar DataTables
+        const tableDispositivos = $('#dispositivosTable').DataTable({
             language: {
                 url: '/sdn/json/es.json'
             },
             pageLength: 5,
             lengthMenu: [5, 10, 25],
-            responsive: true
+            responsive: true,
+            order: [[0, 'asc']]
         });
 
-        // Establecer el orden después de la inicialización
-        table.order([0, 'asc']).draw();
+        const tableSolicitudes = $('#solicitudesTable').DataTable({
+            language: {
+                url: '/sdn/json/es.json'
+            },
+            pageLength: 5,
+            lengthMenu: [5, 10, 25],
+            responsive: true,
+            order: [[4, 'desc']] // Ordenar por fecha descendente
+        });
+
+        // Event listeners para los botones
+        $('.ver-puertos').click(function() {
+            const id = $(this).data('id');
+            const nombre = $(this).data('nombre');
+            const puertos = $(this).data('puertos');
+            mostrarPuertos(id, nombre, puertos);
+        });
+
+        $('.aprobar-solicitud').click(function() {
+            const id = $(this).data('id');
+            aprobarSolicitud(id);
+        });
+
+        $('.rechazar-solicitud').click(function() {
+            const id = $(this).data('id');
+            mostrarModalRechazo(id);
+        });
+
+        $('.revocar-acceso').click(function() {
+            const id = $(this).data('id');
+            confirmarRevocacion(id);
+        });
     });
 
-    function confirmarCerrarSesion() {
+    function mostrarPuertos(id, nombre, puertos) {
+        let htmlContent = '<div class="table-responsive"><table class="table table-striped">' +
+            '<thead><tr><th>Puerto</th></tr></thead><tbody>';
+
+        puertos.forEach(puerto => {
+            htmlContent += `<tr><td>${puerto}</td></tr>`;
+        });
+
+        htmlContent += '</tbody></table></div>';
+
         Swal.fire({
-            title: 'Cierre de sesión',
-            text: '¿Desea cerrar sesión en este dispositivo o en todos los dispositivos?',
-            icon: 'warning',
+            title: `Puertos del servicio ${nombre}`,
+            html: htmlContent,
+            confirmButtonText: 'Entendido'
+        });
+    }
+
+    function aprobarSolicitud(id) {
+        Swal.fire({
+            title: '¿Aprobar solicitud?',
+            text: "Se dará acceso al usuario al servicio",
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'Este dispositivo',
-            cancelButtonText: 'Todos los dispositivos',
-            reverseButtons: true, // Invierte el orden de los botones
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, aprobar',
+            cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Usuario eligió "Este dispositivo"
-                let data = {
-                    "type" : "one",
-                };
-
                 $.ajax({
-                    url: "/sdn/auth/logout",
-                    type: "POST",
-                    data: data,
-                    success: function (response) {
-                        console.log(response.content);
-                        window.location.href = "/sdn/login";
+                    url: `/sdn/servicios/solicitud/${id}/aprobar`,
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire({
+                                title: 'Aprobado',
+                                text: 'La solicitud ha sido aprobada exitosamente',
+                                icon: 'success'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: response.message,
+                                icon: 'error'
+                            });
+                        }
                     },
-                    error: function (xhr, status, error) {
-                        const jsonResponse=xhr.responseText;
-                        console.log(jsonResponse);
-                        window.location.href = "/sdn/login";
-                    }
-                });
-
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                // Usuario eligió "Todos los dispositivos"
-                let data = {
-                    "type" : "all",
-                };
-
-                $.ajax({
-                    url: "/sdn/auth/logout",
-                    type: "POST",
-                    data: data,
-                    success: function (response) {
-                        console.log(response.content);
-                        window.location.href = "/sdn/login";
-                    },
-                    error: function (xhr, status, error) {
-                        const jsonResponse=xhr.responseText;
-                        console.log(jsonResponse);
-                        window.location.href = "/sdn/login";
+                    error: function() {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Ocurrió un error al procesar la solicitud',
+                            icon: 'error'
+                        });
                     }
                 });
             }
         });
     }
 
-    function mostrarPuertos(element) {
-        // Leer los valores de los atributos data-*
-        const puertosJson = element.getAttribute("data-puertos");
-        const nombre = element.getAttribute("data-nombre");
-
-        // Validar y parsear los datos JSON
-        if (!puertosJson) {
-            console.error("No hay datos de puertos disponibles.");
-            return;
-        }
-
-        const puertos = JSON.parse(puertosJson);
-
-        // Construir el contenido HTML dinámicamente
-        let htmlContent = '<div class="card">' +
-            '<div class="card-body">' +
-            '<table class="table table-striped" style="width:100%">' +
-            '<thead><tr><th>Puertos</th></tr></thead>' +
-            '<tbody>';
-
-        puertos.forEach(puerto => {
-            htmlContent += `<tr><td>${puerto}</td></tr>`;
-        });
-
-        htmlContent += '</tbody></table></div></div>';
-
-        // Mostrar el modal con SweetAlert
+    function mostrarModalRechazo(id) {
         Swal.fire({
-            title: `Puertos del servicio ${nombre}`,
-            html: htmlContent,
-            confirmButtonText: 'Entendido',
+            title: 'Rechazar solicitud',
+            text: 'Por favor, indique el motivo del rechazo:',
+            input: 'textarea',
+            inputAttributes: {
+                required: true
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Rechazar',
+            cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: (motivo) => {
+                if (!motivo) {
+                    Swal.showValidationMessage('Debe ingresar un motivo');
+                    return false;
+                }
+                return rechazarSolicitud(id, motivo);
+            }
+        });
+    }
+
+    function rechazarSolicitud(id, motivo) {
+        return $.ajax({
+            url: `/sdn/servicios/solicitud/${id}/rechazar`,
+            type: 'POST',
+            data: { motivo: motivo },
+            success: function(response) {
+                if (response.status === 'success') {
+                    Swal.fire({
+                        title: 'Rechazado',
+                        text: 'La solicitud ha sido rechazada',
+                        icon: 'success'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar la solicitud',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+
+    function confirmarRevocacion(id) {
+        Swal.fire({
+            title: '¿Revocar acceso?',
+            text: 'El dispositivo perderá acceso al servicio. ¿Está seguro?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, revocar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                revocarAcceso(id);
+            }
+        });
+    }
+
+    function revocarAcceso(id) {
+        $.ajax({
+            url: `/sdn/servicios/acceso/${id}/revocar`,
+            type: 'POST',
+            success: function(response) {
+                if (response.status === 'success') {
+                    Swal.fire({
+                        title: 'Acceso revocado',
+                        text: 'El acceso ha sido revocado exitosamente',
+                        icon: 'success'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar la solicitud',
+                    icon: 'error'
+                });
+            }
         });
     }
 </script>
