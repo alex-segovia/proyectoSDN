@@ -5,6 +5,7 @@ import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.*;
+import com.example.proyectosdn.service.UsuarioSesionService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,8 +25,6 @@ import java.util.Optional;
 @RequestMapping("/sdn/dispositivos")
 @Slf4j
 public class DispositivosController {
-    @Autowired
-    private SesionActivaRepository sesionActivaRepository;
 
     @Autowired
     private DispositivoRepository dispositivoRepository;
@@ -38,53 +38,69 @@ public class DispositivosController {
     @Autowired
     private ServicioPorDispositivoRepository servicioPorDispositivoRepository;
 
+    @Autowired
+    private UsuarioSesionService usuarioSesionService;
+
     // Listar dispositivos
     @GetMapping("")
-    public String listarDispositivos(Model model, HttpServletRequest httpRequest) {
+    public String listarDispositivos(Model model, HttpServletRequest request) {
+        Usuario usuarioActivo = usuarioSesionService.obtenerUsuarioActivo(request);
 
-        String ipAdd = httpRequest.getHeader("X-Real-IP");
-        if (ipAdd == null || ipAdd.isEmpty()) {
-            ipAdd = httpRequest.getHeader("X-Forwarded-For");
-            if (ipAdd == null || ipAdd.isEmpty()) {
-                ipAdd = httpRequest.getRemoteAddr();
-            }
-        }
-
-        String rolUsuario = sesionActivaRepository.userRolPorIp(ipAdd);
-
-        if(rolUsuario.equals("Superadmin")){
+        if(usuarioActivo.getRol().equals("Superadmin")){
             log.info("Listando todos los dispositivos");
             model.addAttribute("dispositivos", dispositivoRepository.findAll());
         }else{
             log.info("Listando los dispositivos del usuario");
-            model.addAttribute("dispositivos", dispositivoRepository.findByUsuarioId(sesionActivaRepository.userIdPorIp(ipAdd)));
+            model.addAttribute("dispositivos", dispositivoRepository.findByUsuarioId(usuarioActivo.getId()));
         }
 
         model.addAttribute("active", "dispositivos");
+        model.addAttribute("usuarioActivo", usuarioActivo);
         return "dispositivos/lista_dispositivos";
     }
 
     // Mostrar formulario de nuevo dispositivo
     @GetMapping("/nuevo")
-    public String mostrarFormularioNuevo(Model model) {
-        log.info("Mostrando formulario de nuevo dispositivo");
+    public String mostrarFormularioNuevo(Model model, HttpServletRequest request) {
+        Usuario usuarioActivo = usuarioSesionService.obtenerUsuarioActivo(request);
+
+        log.info("Mostrando formulario de nuevo dispositivo para usuario: {}", usuarioActivo.getUsername());
+
         model.addAttribute("dispositivo", new Dispositivo());
-        model.addAttribute("usuarios", usuarioRepository.findAll());
+        // Si es Superadmin ve todos los usuarios, si no, solo se ve a sí mismo
+        if (usuarioActivo.getRol().equals("Superadmin")) {
+            model.addAttribute("usuarios", usuarioRepository.findAll());
+        } else {
+            List<Usuario> usuarios = new ArrayList<>();
+            usuarios.add(usuarioActivo);
+            model.addAttribute("usuarios", usuarios);
+        }
+
         model.addAttribute("active", "dispositivos");
+        model.addAttribute("usuarioActivo", usuarioActivo);
         return "dispositivos/formulario_dispositivos";
     }
 
     // Mostrar formulario de edición
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
+    public String mostrarFormularioEditar(@PathVariable Integer id, Model model, HttpServletRequest request) {
+        Usuario usuarioActivo = usuarioSesionService.obtenerUsuarioActivo(request);
+
         log.info("Mostrando formulario de edición para dispositivo ID: {}", id);
 
         Dispositivo dispositivo = dispositivoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
 
+        // Verificar permisos
+        if (!usuarioActivo.getRol().equals("Superadmin") &&
+                !dispositivo.getUsuario().getId().equals(usuarioActivo.getId())) {
+            throw new RuntimeException("No tiene permisos para editar este dispositivo");
+        }
+
         model.addAttribute("dispositivo", dispositivo);
         model.addAttribute("usuarios", usuarioRepository.findAll());
         model.addAttribute("active", "dispositivos");
+        model.addAttribute("usuarioActivo", usuarioActivo);
         return "dispositivos/formulario_dispositivos";
     }
 
@@ -94,8 +110,19 @@ public class DispositivosController {
                                      BindingResult result,
                                      Model model,
                                      @RequestParam(name = "usuario.id", required = false) Integer usuarioId,
-                                     RedirectAttributes redirectAttributes) {
+                                     RedirectAttributes redirectAttributes,
+                                     HttpServletRequest request) {
+
         log.info("Guardando dispositivo: {}", dispositivo);
+        Usuario usuarioActivo = usuarioSesionService.obtenerUsuarioActivo(request);
+
+        // Si no es Superadmin, solo puede asignar dispositivos a sí mismo
+        if (!usuarioActivo.getRol().equals("Superadmin") && !usuarioActivo.getId().equals(usuarioId)) {
+            redirectAttributes.addFlashAttribute("error", "Solo puede asignar dispositivos a su usuario");
+            return "redirect:/dispositivos";
+        }
+
+
 
         if (result.hasErrors()) {
             model.addAttribute("usuarios", usuarioRepository.findAll());
@@ -136,7 +163,8 @@ public class DispositivosController {
 
     // Ver detalles del dispositivo
     @GetMapping("/ver/{id}")
-    public String verDispositivo(@PathVariable Integer id, Model model) {
+    public String verDispositivo(@PathVariable Integer id, Model model, HttpServletRequest request) {
+        Usuario usuarioActivo = usuarioSesionService.obtenerUsuarioActivo(request);
         log.info("Mostrando detalles del dispositivo ID: {}", id);
 
         Dispositivo dispositivo = dispositivoRepository.findById(id)
@@ -150,6 +178,7 @@ public class DispositivosController {
         model.addAttribute("dispositivo", dispositivo);
         model.addAttribute("serviciosDisponibles", serviciosDisponibles);
         model.addAttribute("active", "dispositivos");
+        model.addAttribute("usuarioActivo", usuarioActivo);
         return "dispositivos/ver_dispositivo";
     }
 

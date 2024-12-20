@@ -1,9 +1,11 @@
 package com.example.proyectosdn.repository;
 
 import com.example.proyectosdn.entity.SesionActiva;
+import com.example.proyectosdn.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface SesionActivaRepository extends JpaRepository<SesionActiva, Integer> {
@@ -34,4 +36,11 @@ public interface SesionActivaRepository extends JpaRepository<SesionActiva, Inte
 
     @Query(nativeQuery = true,value = "select u.id from sesion_activa sa inner join usuario u on sa.username=u.username where sa.active=1 and sa.ip=?1 limit 1")
     Integer userIdPorIp(String ip);
+
+    @Query("SELECT u FROM Usuario u " +
+            "LEFT JOIN FETCH u.dispositivos " +
+            "LEFT JOIN FETCH u.servicios " +
+            "INNER JOIN SesionActiva sa ON sa.username = u.username " +
+            "WHERE sa.active = true AND sa.ip = :ip")
+    Usuario findUsuarioActivoByIp(@Param("ip") String ip);
 }

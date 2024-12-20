@@ -78,17 +78,20 @@
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
-                               class="btn btn-warning btn-sm"
-                               title="Editar">
-                                <i class='bx bx-edit'></i>
-                            </a>
-                            <button type="button"
-                                    class="btn btn-danger btn-sm"
-                                    title="Eliminar"
-                                    th:onclick="'confirmarEliminar(' + ${dispositivo.id} + ')'">
-                                <i class='bx bx-trash'></i>
-                            </button>
+                            <!-- Mostrar editar y eliminar solo si es su dispositivo o es Superadmin -->
+                            <th:block th:if="${usuarioActivo.rol == 'Superadmin' || (dispositivo.usuario != null && usuarioActivo.id == dispositivo.usuario.id)}">
+                                <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                                   class="btn btn-warning btn-sm"
+                                   title="Editar">
+                                    <i class='bx bx-edit'></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        title="Eliminar"
+                                        th:onclick="'confirmarEliminar(' + ${dispositivo.id} + ')'">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </th:block>
                         </div>
                     </td>
                 </tr>

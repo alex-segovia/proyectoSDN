@@ -87,17 +87,34 @@
                                         <i class='bx bx-user'></i>
                                     </span>
                                     <select class="form-select" id="usuario" name="usuario.id" required>
-                                        <option value="">Seleccione un usuario (temporal: hasta tener el sistema de autenticación)</option>
-                                        <option th:each="user : ${usuarios}"
-                                                th:value="${user.id}"
-                                                th:text="${user.nombres + ' ' + user.apellidoPaterno}"
-                                                th:selected="${dispositivo.usuario != null && dispositivo.usuario.id == user.id}">
-                                        </option>
+                                        <option value="">Seleccione un usuario</option>
+                                        <!-- Si es Superadmin, mostrar todos los usuarios -->
+                                        <div th:if="${usuarioActivo.rol == 'Superadmin'}">
+                                            <option th:each="user : ${usuarios}"
+                                                    th:value="${user.id}"
+                                                    th:text="${user.nombres + ' ' + user.apellidoPaterno}"
+                                                    th:selected="${dispositivo.usuario != null && dispositivo.usuario.id == user.id}">
+                                            </option>
+                                        </div>
+                                        <!-- Si no es Superadmin, solo mostrar al usuario actual -->
+                                        <div th:unless="${usuarioActivo.rol == 'Superadmin'}">
+                                            <option th:value="${usuarioActivo.id}"
+                                                    th:text="${usuarioActivo.nombres + ' ' + usuarioActivo.apellidoPaterno}"
+                                                    selected>
+                                            </option>
+                                        </div>
                                     </select>
                                     <div class="invalid-feedback">
                                         Por favor seleccione un usuario
                                     </div>
                                 </div>
+                                <!-- Mostrar información adicional según el rol -->
+                                <small class="text-muted" th:if="${usuarioActivo.rol == 'Superadmin'}">
+                                    Puede asignar el dispositivo a cualquier usuario
+                                </small>
+                                <small class="text-muted" th:unless="${usuarioActivo.rol == 'Superadmin'}">
+                                    El dispositivo será asignado a su cuenta
+                                </small>
                             </div>
 
                             <!-- Estado y Autenticación -->
