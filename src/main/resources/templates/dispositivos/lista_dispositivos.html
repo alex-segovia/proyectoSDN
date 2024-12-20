@@ -79,7 +79,7 @@
                                 <i class='bx bx-show'></i>
                             </a>
                             <!-- Mostrar editar y eliminar solo si es su dispositivo o es Superadmin -->
-                            <th:block th:if="${usuarioActivo.rol == 'Superadmin' || (dispositivo.usuario != null && usuarioActivo.id == dispositivo.usuario.id)}">
+                            <th:block th:if="${usuarioActual.rol == 'Superadmin' || (dispositivo.usuario != null && usuarioActual.id == dispositivo.usuario.id)}">
                                 <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
                                    class="btn btn-warning btn-sm"
                                    title="Editar">

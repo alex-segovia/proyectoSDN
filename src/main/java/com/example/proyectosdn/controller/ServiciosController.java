@@ -75,26 +75,28 @@ public class ServiciosController {
 
         model.addAttribute("active", "servicios");
         model.addAttribute("rolUsuario", usuarioActual.getRol());
+        model.addAttribute("usuarioActual", usuarioActual);
         return "servicios/lista_servicios";
     }
 
     @GetMapping("/nuevo")
     public String mostrarFormularioNuevo(Model model, HttpServletRequest request) {
-        Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-        if ("Alumno".equals(usuario.getRol())) {
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+        if ("Alumno".equals(usuarioActual.getRol())) {
             return "redirect:/sdn/servicios";
         }
 
         model.addAttribute("servicio", new Servicio());
         model.addAttribute("puertos", new ArrayList<>());
         model.addAttribute("active", "servicios");
+        model.addAttribute("usuarioActual", usuarioActual);
         return "servicios/formulario_solicitud_servicios";
     }
 
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model, HttpServletRequest request) {
-        Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-        if ("Alumno".equals(usuario.getRol())) {
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+        if ("Alumno".equals(usuarioActual.getRol())) {
             return "redirect:/sdn/servicios";
         }
 
@@ -103,7 +105,7 @@ public class ServiciosController {
                     .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
             // Verificar que el usuario sea el creador del servicio
-            if (!servicio.getUsuarioCreador().getId().equals(usuario.getId())) {
+            if (!servicio.getUsuarioCreador().getId().equals(usuarioActual.getId())) {
                 return "redirect:/sdn/servicios";
             }
 
@@ -114,6 +116,7 @@ public class ServiciosController {
             model.addAttribute("servicio", servicio);
             model.addAttribute("puertos", puertos);
             model.addAttribute("active", "servicios");
+            model.addAttribute("usuarioActual", usuarioActual);
             return "servicios/formulario_solicitud_servicios";
         } catch (EntityNotFoundException e) {
             return "redirect:/sdn/servicios";
@@ -127,14 +130,15 @@ public class ServiciosController {
                                   Model model,
                                   RedirectAttributes redirectAttributes,
                                   HttpServletRequest request) {
-        Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-        if ("Alumno".equals(usuario.getRol())) {
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+        if ("Alumno".equals(usuarioActual.getRol())) {
             return "redirect:/sdn/servicios";
         }
 
         if (result.hasErrors()) {
             model.addAttribute("puertos", puertos);
             model.addAttribute("active", "servicios");
+            model.addAttribute("usuarioActual", usuarioActual);
             return "servicios/formulario_solicitud_servicios";
         }
 
@@ -145,11 +149,12 @@ public class ServiciosController {
                 result.rejectValue("nombre", "error.servicio", "Ya existe un servicio con este nombre");
                 model.addAttribute("puertos", puertos);
                 model.addAttribute("active", "servicios");
+                model.addAttribute("usuarioActual", usuarioActual);
                 return "servicios/formulario_solicitud_servicios";
             }
 
             // Asignar usuario creador
-            servicio.setUsuarioCreador(usuario);
+            servicio.setUsuarioCreador(usuarioActual);
 
             // Guardar servicio
             Servicio servicioGuardado = servicioRepository.save(servicio);
@@ -190,12 +195,13 @@ public class ServiciosController {
             Servicio servicio = servicioRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
-            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-            boolean esCreador = servicio.getUsuarioCreador().getId().equals(usuario.getId());
+            Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+            boolean esCreador = servicio.getUsuarioCreador().getId().equals(usuarioActual.getId());
 
             model.addAttribute("servicio", convertToDTO2(servicio));
             model.addAttribute("esCreador", esCreador);
             model.addAttribute("active", "servicios");
+            model.addAttribute("usuarioActual", usuarioActual);
             return "servicios/ver_servicio";
         } catch (EntityNotFoundException e) {
             return "redirect:/sdn/servicios";

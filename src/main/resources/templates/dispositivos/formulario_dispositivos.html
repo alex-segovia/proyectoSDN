@@ -88,16 +88,16 @@
                                     </span>
                                     <select class="form-select" id="usuario" name="usuario.id" required>
                                         <option value="">Seleccione un usuario</option>
-                                        <th:block th:if="${usuarioActivo.rol == 'Superadmin'}">
+                                        <th:block th:if="${usuarioActual.rol == 'Superadmin'}">
                                             <option th:each="user : ${usuarios}"
                                                     th:value="${user.id}"
                                                     th:text="${user.nombres + ' ' + user.apellidoPaterno}"
                                                     th:selected="${dispositivo.usuario != null && dispositivo.usuario.id == user.id}">
                                             </option>
                                         </th:block>
-                                        <th:block th:unless="${usuarioActivo.rol == 'Superadmin'}">
-                                            <option th:value="${usuarioActivo.id}"
-                                                    th:text="${usuarioActivo.nombres + ' ' + usuarioActivo.apellidoPaterno}"
+                                        <th:block th:unless="${usuarioActual.rol == 'Superadmin'}">
+                                            <option th:value="${usuarioActual.id}"
+                                                    th:text="${usuarioActual.nombres + ' ' + usuarioActual.apellidoPaterno}"
                                                     selected>
                                             </option>
                                         </th:block>

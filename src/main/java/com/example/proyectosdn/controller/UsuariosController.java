@@ -6,7 +6,9 @@ import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.DispositivoRepository;
 import com.example.proyectosdn.repository.ServicioRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
+import com.example.proyectosdn.service.UsuarioSesionService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,18 +35,26 @@ public class UsuariosController {
     @Autowired
     private ServicioRepository servicioRepository;
 
+    @Autowired
+    private UsuarioSesionService usuarioSesionService;
+
     // Listar usuarios
     @GetMapping("")
-    public String listarUsuarios(Model model) {
+    public String listarUsuarios(Model model, HttpServletRequest request) {
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+
         log.info("Listando todos los usuarios");
         model.addAttribute("usuarios", usuarioRepository.findAll());
         model.addAttribute("active", "usuarios");
+        model.addAttribute("usuarioActual", usuarioActual);
         return "usuarios/lista_usuarios";
     }
 
     // Mostrar formulario de nuevo usuario
     @GetMapping("/nuevo")
-    public String mostrarFormularioNuevo(Model model) {
+    public String mostrarFormularioNuevo(Model model, HttpServletRequest request) {
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+
         log.info("Mostrando formulario de nuevo usuario");
         Usuario usuario = new Usuario();
 
@@ -53,12 +63,15 @@ public class UsuariosController {
 
         model.addAttribute("usuario", usuario);
         model.addAttribute("active", "usuarios");
+        model.addAttribute("usuarioActual", usuarioActual);
         return "usuarios/formulario_usuarios";
     }
 
     // Mostrar formulario de edición
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
+    public String mostrarFormularioEditar(@PathVariable Integer id, Model model, HttpServletRequest request) {
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+
         log.info("Mostrando formulario de edición para usuario ID: {}", id);
 
         try {
@@ -67,10 +80,11 @@ public class UsuariosController {
 
             model.addAttribute("usuario", usuario);
             model.addAttribute("active", "usuarios");
+            model.addAttribute("usuarioActual", usuarioActual);
             return "usuarios/formulario_usuarios";
         } catch (EntityNotFoundException e) {
             log.error("Error al buscar usuario: {}", e.getMessage());
-            return "redirect:/usuarios";
+            return "redirect:/sdn/usuarios";
         }
     }
 
@@ -78,11 +92,15 @@ public class UsuariosController {
     @PostMapping("/guardar")
     public String guardarUsuario(@Valid Usuario usuario,
                                  BindingResult result, Model model,
-                                 RedirectAttributes redirectAttributes) {
+                                 RedirectAttributes redirectAttributes,
+                                 HttpServletRequest request) {
         log.info("Guardando usuario: {}", usuario);
+
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
 
         if (result.hasErrors()) {
             model.addAttribute("active", "usuarios");
+            model.addAttribute("usuarioActual", usuarioActual);
             return "usuarios/formulario_usuarios";
         }
 
@@ -92,6 +110,7 @@ public class UsuariosController {
             if (usuarioExistente.isPresent() && !usuarioExistente.get().getId().equals(usuario.getId())) {
                 result.rejectValue("username", "error.usuario", "Este username ya está registrado");
                 model.addAttribute("active", "usuarios");
+                model.addAttribute("usuarioActual", usuarioActual);
                 return "usuarios/formulario_usuarios";
             }
 
@@ -100,6 +119,7 @@ public class UsuariosController {
             if (usuarioExistente.isPresent() && !usuarioExistente.get().getId().equals(usuario.getId())) {
                 result.rejectValue("dni", "error.usuario", "Este DNI ya está registrado");
                 model.addAttribute("active", "usuarios");
+                model.addAttribute("usuarioActual", usuarioActual);
                 return "usuarios/formulario_usuarios";
             }
             usuarioRepository.registrarUsuario(usuario.getUsername(),usuario.getValue(),usuario.getNombres(),usuario.getApellidoPaterno(),usuario.getApellidoMaterno(),usuario.getRol(),usuario.getDni());
@@ -115,26 +135,28 @@ public class UsuariosController {
 
     // Ver detalles del usuario
     @GetMapping("/ver/{id}")
-    public String verUsuario(@PathVariable Integer id, Model model) {
+    public String verUsuario(@PathVariable Integer id, Model model, HttpServletRequest request) {
         log.info("Mostrando detalles del usuario ID: {}", id);
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
 
         try {
             Usuario usuario = usuarioRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
             model.addAttribute("usuario", usuario);
-            model.addAttribute("active", "usuarios");
+            model.addAttribute("usuarioActual", usuarioActual);
             return "usuarios/ver_usuario";
         } catch (EntityNotFoundException e) {
             log.error("Error al buscar usuario: {}", e.getMessage());
-            return "redirect:/usuarios";
+            return "redirect:/sdn/usuarios";
         }
     }
 
     // Eliminar usuario
     @PostMapping("/eliminar/{id}")
-    public String eliminarUsuario(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    public String eliminarUsuario(@PathVariable Integer id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         log.info("Eliminando usuario ID: {}", id);
+        Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
 
         try {
             Usuario usuario = usuarioRepository.findById(id)
@@ -146,7 +168,7 @@ public class UsuariosController {
                 redirectAttributes.addFlashAttribute("error",
                         "No se puede eliminar el usuario porque tiene " + dispositivos.size() +
                                 " dispositivo(s) asociado(s)");
-                return "redirect:/usuarios";
+                return "redirect:/sdn/usuarios";
             }
 
             // Verificar si tiene servicios creados
@@ -155,7 +177,7 @@ public class UsuariosController {
                 redirectAttributes.addFlashAttribute("error",
                         "No se puede eliminar el usuario porque ha creado " + servicios.size() +
                                 " servicios(s)");
-                return "redirect:/usuarios";
+                return "redirect:/sdn/usuarios";
             }
 
             usuarioRepository.delete(usuario);
@@ -166,7 +188,7 @@ public class UsuariosController {
             redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el usuario");
         }
 
-        return "redirect:/usuarios";
+        return "redirect:/sdn/usuarios";
     }
 
     // Manejador de excepciones
@@ -175,6 +197,6 @@ public class UsuariosController {
                                                 RedirectAttributes redirectAttributes) {
         log.error("Error de entidad no encontrada: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        return "redirect:/usuarios";
+        return "redirect:/sdn/usuarios";
     }
 }
