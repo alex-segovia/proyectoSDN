@@ -292,30 +292,30 @@
             <h1>Registra tu cuenta</h1>
         </div>
         <div class="form-content">
-            <form th:action="@{/sdn/autenticacion/registro}" method="post" th:object="${usuario}">
+            <form method="post">
                 <div class="form-group">
                     <label for="nombres">Nombres</label>
-                    <input id="nombres" type="text" th:field="*{nombres}" required="required"/>
+                    <input id="nombres" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="apellidoPaterno">Apellido paterno</label>
-                    <input id="apellidoPaterno" type="text" th:field="*{apellidoPaterno}" required="required"/>
+                    <input id="apellidoPaterno" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="apellidoMaterno">Apellido materno</label>
-                    <input id="apellidoMaterno" type="text" th:field="*{apellidoMaterno}" required="required"/>
+                    <input id="apellidoMaterno" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="dni">DNI</label>
-                    <input id="dni" type="text" th:field="*{dni}" required="required"/>
+                    <input id="dni" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="correo">Correo electrónico</label>
-                    <input id="correo" type="email" th:field="*{username}" required="required"/>
+                    <input id="correo" type="email" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="password">Contraseña</label>
-                    <input id="password" type="password" th:field="*{value}" required="required"/>
+                    <input id="password" type="password" required="required"/>
                 </div>
                 <div class="form-group">
                     <button type="submit">Registrarse</button>
@@ -360,29 +360,31 @@
             }, 200);
         });
     });
-    function conectar(){
+    function conectar() {
         let username = $("#correoLogin").val();
         let password = $("#passwordLogin").val();
         let data = {
-            "username" : username,
-            "password" : password
+            "username": username,
+            "password": password
         };
         console.log(data);
         $.ajax({
-            url: "/sdn/auth/autenticar",
-            type: "POST",
-            data: data,
+            url: "/sdn/auth/autenticar", // Endpoint para autenticar
+            type: "POST",               // Método HTTP
+            contentType: "application/json", // Indica que se envía JSON
+            data: JSON.stringify(data),      // Convierte el objeto en JSON
             success: function (response) {
                 console.log(response.content);
-                window.location.href = "/sdn/dispositivos";
+                window.location.href = "/sdn/dispositivos"; // Redirige en caso de éxito
             },
             error: function (xhr, status, error) {
-                const jsonResponse=xhr.responseText;
+                const jsonResponse = xhr.responseText;
                 console.log(jsonResponse);
-                alert("Hola , no estás autenticado");
+                alert("Hola, no estás autenticado");
             }
         });
     }
+
 </script>
 
 </body>

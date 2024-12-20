@@ -48,6 +48,8 @@ public class FilterQuery implements Filter {
             if (!url.equals("/sdn/login")) {
                 httpResponse.sendRedirect("http://192.168.200.200:8080/sdn/login");
                 return; // Termina aquí para evitar ejecutar el resto del filtro
+            }else {
+                chain.doFilter(request, response); // Continuar con el flujo normal
             }
         }
     }
