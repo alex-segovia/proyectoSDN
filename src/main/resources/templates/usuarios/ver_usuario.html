@@ -137,7 +137,7 @@
                                           class="badge bg-danger">Inactivo</span>
                                 </td>
                                 <td>
-                                    <a th:href="@{/dispositivos/ver/{id}(id=${dispositivo.id})}"
+                                    <a th:href="@{/sdn/dispositivos/ver/{id}(id=${dispositivo.id})}"
                                        class="btn btn-info btn-sm">
                                         <i class='bx bx-show'></i>
                                     </a>
@@ -169,7 +169,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
-                                <th>Puerto</th>
+                                <th>Puertos</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -178,15 +178,20 @@
                             <tr th:each="servicio : ${usuario.servicios}">
                                 <td th:text="${servicio.id}"></td>
                                 <td th:text="${servicio.nombre}"></td>
-                                <td th:text="${servicio.puerto}"></td>
+                                <td>
+                                    <ul>
+                                        <li th:each="puerto : ${servicio.puertoPorServicios}"
+                                            th:text="${puerto.puerto.numeroPuerto}"></li>
+                                    </ul>
+                                </td>
                                 <td class="text-center">
-                                            <span th:if="${servicio.estado == 1}"
-                                                  class="badge bg-success">Activo</span>
+                        <span th:if="${servicio.estado == 1}"
+                              class="badge bg-success">Activo</span>
                                     <span th:unless="${servicio.estado == 1}"
                                           class="badge bg-danger">Inactivo</span>
                                 </td>
                                 <td>
-                                    <a th:href="@{/templates/servicios/ver/{id}(id=${servicio.id})}"
+                                    <a th:href="@{/sdn/servicios/ver/{id}(id=${servicio.id})}"
                                        class="btn btn-info btn-sm">
                                         <i class='bx bx-show'></i>
                                     </a>
@@ -202,6 +207,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -218,7 +224,6 @@
             },
             pageLength: 5,
             lengthMenu: [5, 10, 25],
-            order: [[0, 'asc']]
         });
 
         $('#serviciosTable').DataTable({
@@ -227,7 +232,6 @@
             },
             pageLength: 5,
             lengthMenu: [5, 10, 25],
-            order: [[0, 'asc']]
         });
     });
 
