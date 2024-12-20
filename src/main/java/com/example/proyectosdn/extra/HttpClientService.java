@@ -15,12 +15,19 @@ import java.util.Map;
 public class HttpClientService {
     private final RestTemplate restTemplate;
 
+    // Constructor
     public HttpClientService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
+    /**
+     * Método para obtener la dirección MAC asociada a una IP usando el API de Floodlight.
+     *
+     * @param ipDestino Dirección IP del destino.
+     * @return Dirección MAC asociada, o null si no se encuentra.
+     */
     public String obtenerMacPorIp(String ipDestino) {
-        String url = "http://localhost:8082" + "/wm/device/";
+        String url = "http://localhost:8082/wm/device/";
         try {
             // Realizar la solicitud al API de Floodlight
             ResponseEntity<List> response = restTemplate.getForEntity(url, List.class);
@@ -47,4 +54,31 @@ public class HttpClientService {
         return null; // Retornar null si no se encuentra la MAC
     }
 
+    /**
+     * Método para eliminar reglas en Floodlight basadas en la dirección MAC.
+     *
+     * @param macAddress Dirección MAC para la cual se eliminarán las reglas.
+     * @return Respuesta del servidor Floodlight.
+     */
+    public String eliminarReglasPorMac(String macAddress) {
+        String url = "http://localhost:8082/custom/deleteRulesByMac";
+        try {
+            // Configurar headers para la solicitud POST
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_PLAIN); // Indicamos que enviamos texto plano
+
+            // Crear la entidad HTTP con la dirección MAC
+            HttpEntity<String> request = new HttpEntity<>(macAddress, headers);
+
+            // Realizar la solicitud POST
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            System.out.println("Eliminando reglas que tengan la dirección MAC: " + macAddress);
+            // Retornar la respuesta del servidor
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error al eliminar reglas en Floodlight: " + e.getMessage());
+            return "Error: " + e.getMessage();
+        }
+    }
 }

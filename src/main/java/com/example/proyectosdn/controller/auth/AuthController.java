@@ -28,14 +28,10 @@ import org.tinyradius.util.RadiusClient;
 import java.io.IOException;
 import java.net.http.HttpResponse;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/sdn/auth")
@@ -142,17 +138,19 @@ public class AuthController {
         Map<String,Object>responseMap=new HashMap<>();
         Servicio servicioEnComun=servicioRepository.obtenerServicioEnComun(macOrigen,macDestino);
         Map<String,Object> content=new HashMap<>();
-        HashMap<String,Object>servicioMap=new HashMap<>();
         List<Integer>puertos=new ArrayList<>();
-        for(PuertoPorServicio puertoPorServicio:servicioEnComun.getPuertoPorServicios()){
-            puertos.add(puertoPorServicio.getPuerto().getId());
+        if(servicioEnComun!=null){
+            HashMap<String,Object>servicioMap=new HashMap<>();
+            for(PuertoPorServicio puertoPorServicio:servicioEnComun.getPuertoPorServicios()){
+                puertos.add(puertoPorServicio.getPuerto().getNumeroPuerto());
+            }
+            servicioMap.put("id",servicioEnComun.getId());
+            servicioMap.put("nombre",servicioEnComun.getNombre());
+            servicioMap.put("estado",servicioEnComun.getEstado());
+            servicioMap.put("puertos",puertos);
+            content.put("servicio",servicioMap);
         }
-        servicioMap.put("id",servicioEnComun.getId());
-        servicioMap.put("nombre",servicioEnComun.getNombre());
-        servicioMap.put("estado",servicioEnComun.getEstado());
-        servicioMap.put("puertos",puertos);
-        content.put("servicio",servicioEnComun);
-        System.out.println("Success");
+        log.info("Success");
         responseMap.put("status","success");
         responseMap.put("content",content);
         return ResponseEntity.ok(responseMap);
@@ -337,37 +335,28 @@ public class AuthController {
     }
 
     @PostMapping("/registro")
-    public String registrarUsuario(@Valid Usuario usuario,
-                                   BindingResult bindingResult,
-                                   Model model,
-                                   RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("error", "Por favor, corrige los errores del formulario.");
-            return "login";
-        }
-
+    public Object registrarUsuario(@RequestBody Map<String,Object>data) {
+        LinkedHashMap<String,Object>response=new LinkedHashMap<>();
+        String username=data.get("username").toString();
+        String password=data.get("password").toString();
+        String apellidoMaterno=data.get("apellidoMaterno").toString();
+        String apellidoPaterno=data.get("apellidoPaterno").toString();
+        String dni=data.get("dni").toString();
+        String rol=data.get("rol").toString();
+        String nombres=data.get("nombres").toString();
         try {
             // Verificar si el correo ya está registrado
-            if (usuarioRepository.findByUsername(usuario.getUsername()).isPresent()) {
-                model.addAttribute("error", "El correo ya está registrado.");
-                return "login";
+            if (usuarioRepository.findByUsername(username).isPresent()) {
+                response.put("status","error");
+                response.put("content","El correo ya está registrado.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-
-            String hashedPassword = hashPassword(usuario.getValue());
-            usuario.setOp("=");
-            usuario.setAttribute("Cleartext-Password");
-            usuario.setRol("ALUMNO");
-            usuario.setValue(hashedPassword);
-            usuario.setEstado(Integer.valueOf("1"));
-
-            usuarioRepository.save(usuario);
-
-            redirectAttributes.addFlashAttribute("success", "Usuario registrado exitosamente.");
-            return "redirect:/";
+            usuarioRepository.registrarUsuario(username,password,nombres,apellidoPaterno,apellidoMaterno,rol,dni);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            model.addAttribute("error", "Ocurrió un error al registrar al usuario: " + e.getMessage());
-            return "login";
+            response.put("status","error");
+            response.put("content","Ocurrió un error al registrar al usuario: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -375,10 +364,8 @@ public class AuthController {
     private String hashPassword(String password) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-        String salt = "SALT123!";
-        String saltedPassword = password + salt;
 
-        byte[] encodedHash = digest.digest(saltedPassword.getBytes(StandardCharsets.UTF_8));
+        byte[] encodedHash = digest.digest(password.getBytes());
 
         return Base64.getEncoder().encodeToString(encodedHash);
     }

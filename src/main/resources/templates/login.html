@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="/sdn/css/sweetAlert.css">
     <style>
         html {
             width: 100%;
@@ -292,33 +293,43 @@
             <h1>Registra tu cuenta</h1>
         </div>
         <div class="form-content">
-            <form th:action="@{/sdn/auth/registro}" method="post" th:object="${usuario}">
+            <form>
                 <div class="form-group">
                     <label for="nombres">Nombres</label>
-                    <input id="nombres" type="text" th:field="*{nombres}" required="required"/>
+                    <input id="nombres" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="apellidoPaterno">Apellido paterno</label>
-                    <input id="apellidoPaterno" type="text" th:field="*{apellidoPaterno}" required="required"/>
+                    <input id="apellidoPaterno" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="apellidoMaterno">Apellido materno</label>
-                    <input id="apellidoMaterno" type="text" th:field="*{apellidoMaterno}" required="required"/>
+                    <input id="apellidoMaterno" type="text" required="required"/>
+                </div>
+                <div class="form-group">
+                    <label for="rol">Rol</label>
+                    <select style="width: 80%" id="rol">
+                        <option value="Alumno">Alumno</option>
+                        <option value="Jefe de práctica">Jefe de práctica</option>
+                        <option value="Profesor">Profesor</option>
+                        <option value="Administrativo">Administrativo</option>
+                        <option value="Obrero">Obrero</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="dni">DNI</label>
-                    <input id="dni" type="text" th:field="*{dni}" required="required"/>
+                    <input id="dni" type="text" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="correo">Correo electrónico</label>
-                    <input id="correo" type="email" th:field="*{username}" required="required"/>
+                    <input id="correo" type="email" required="required"/>
                 </div>
                 <div class="form-group">
                     <label for="password">Contraseña</label>
-                    <input id="password" type="password" th:field="*{value}" required="required"/>
+                    <input id="password" type="password" required="required"/>
                 </div>
                 <div class="form-group">
-                    <button type="submit">Registrarse</button>
+                    <button onclick="registrar()">Registrarse</button>
                 </div>
             </form>
         </div>
@@ -326,7 +337,7 @@
 </div>
 
 <script src="/sdn/js/jquery.min.js"></script>
-
+<script src="/sdn/js/sweetAlert.js"></script>
 <script>
     $(document).ready(function() {
         var panelOne = $(".form-panel.two").height(),
@@ -367,7 +378,6 @@
             "username": username,
             "password": password
         };
-        console.log(data);
         $.ajax({
             url: "/sdn/auth/autenticar", // Endpoint para autenticar
             type: "POST",               // Método HTTP
@@ -381,6 +391,44 @@
                 const jsonResponse = xhr.responseText;
                 console.log(jsonResponse);
                 alert("Hola, no estás autenticado");
+            }
+        });
+    }
+
+    function registrar() {
+        let nombres = $("#nombres").val();
+        let username = $("#correo").val();
+        let password = $("#password").val();
+        let apellidoMaterno=$("#apellidoMaterno").val();
+        let apellidoPaterno=$("#apellidoPaterno").val();
+        let dni=$("#dni").val();
+        let rol=$("#rol").val();
+        let data = {
+            "username": username,
+            "nombres":nombres,
+            "password": password,
+            "apellidoMaterno":apellidoMaterno,
+            "apellidoPaterno":apellidoPaterno,
+            "dni":dni,
+            "rol":rol,
+        };
+        $.ajax({
+            url: "/sdn/auth/registro", // Endpoint para autenticar
+            type: "POST",               // Método HTTP
+            contentType: "application/json", // Indica que se envía JSON
+            data: JSON.stringify(data),      // Convierte el objeto en JSON
+            success: function (response) {
+                Swal.fire({
+                    title: 'Solicitud enviada',
+                    text: 'Debe esperar a que el superadmin valide su registro',
+                    icon: 'info',
+                    confirmButtonText: 'Entendido',
+                })
+            },
+            error: function (xhr, status, error) {
+                const error2 = xhr.responseText.content;
+                console.log(error2);
+                alert("Hola, no estás registrado");
             }
         });
     }

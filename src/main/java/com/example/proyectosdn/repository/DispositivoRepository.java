@@ -23,5 +23,6 @@ public interface DispositivoRepository extends JpaRepository<Dispositivo, Intege
     @Query(nativeQuery = true,value = "update dispositivo set id_usuario=(select id from usuario where username=?1) where mac=?2")
     void actualizarIdUsuario(String username,String macDispositivo);
 
-
+    @Query(nativeQuery = true,value = "select d.* from dispositivo d inner join servicio_por_dispositivo spd on d.id = spd.id_dispositivo where spd.id_servicio=?1 and d.estado=1 and spd.estado=1")
+    List<Dispositivo> obtenerDispositivosPorServicio(Integer idServicio);
 }

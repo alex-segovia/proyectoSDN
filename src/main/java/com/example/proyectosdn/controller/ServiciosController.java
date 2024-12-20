@@ -6,6 +6,7 @@ import com.example.proyectosdn.dto.ServicioDTO;
 import com.example.proyectosdn.dto.UsuarioDTO;
 import com.example.proyectosdn.dto.vistas.DispositivoSelectDTO;
 import com.example.proyectosdn.entity.*;
+import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.repository.*;
 import com.example.proyectosdn.service.UsuarioSesionService;
 import jakarta.persistence.EntityNotFoundException;
@@ -48,6 +49,8 @@ public class ServiciosController {
 
     @Autowired
     private UsuarioSesionService usuarioSesionService;
+    @Autowired
+    private HttpClientService httpClientService;
 
     @GetMapping("")
     public String listarServicios(Model model, HttpServletRequest httpRequest) {
@@ -83,7 +86,7 @@ public class ServiciosController {
     public String mostrarFormularioNuevo(Model model, HttpServletRequest request) {
         Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
         if ("Alumno".equals(usuarioActual.getRol())) {
-            return "redirect:/sdn/servicios";
+            return "redirect:http://192.168.200.200:8080/sdn/servicios";
         }
 
         model.addAttribute("servicio", new Servicio());
@@ -97,7 +100,7 @@ public class ServiciosController {
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model, HttpServletRequest request) {
         Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
         if ("Alumno".equals(usuarioActual.getRol())) {
-            return "redirect:/sdn/servicios";
+            return "redirect:http://192.168.200.200:8080/sdn/servicios";
         }
 
         try {
@@ -106,7 +109,7 @@ public class ServiciosController {
 
             // Verificar que el usuario sea el creador del servicio
             if (!servicio.getUsuarioCreador().getId().equals(usuarioActual.getId())) {
-                return "redirect:/sdn/servicios";
+                return "redirect:http://192.168.200.200:8080/sdn/servicios";
             }
 
             List<Integer> puertos = servicio.getPuertoPorServicios().stream()
@@ -119,7 +122,7 @@ public class ServiciosController {
             model.addAttribute("usuarioActual", usuarioActual);
             return "servicios/formulario_solicitud_servicios";
         } catch (EntityNotFoundException e) {
-            return "redirect:/sdn/servicios";
+            return "redirect:http://192.168.200.200:8080/sdn/servicios";
         }
     }
 
@@ -132,7 +135,7 @@ public class ServiciosController {
                                   HttpServletRequest request) {
         Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
         if ("Alumno".equals(usuarioActual.getRol())) {
-            return "redirect:/sdn/servicios";
+            return "redirect:http://192.168.200.200:8080/sdn/servicios";
         }
 
         if (result.hasErrors()) {
@@ -182,7 +185,12 @@ public class ServiciosController {
                     puertoPorServicioRepository.save(pps);
                 }
             }
-
+            List<Dispositivo>dispositivosConServicio=dispositivoRepository.obtenerDispositivosPorServicio(servicioGuardado.getId());
+            if(dispositivosConServicio!=null){
+                for(Dispositivo dispositivo:dispositivosConServicio){
+                    httpClientService.eliminarReglasPorMac(dispositivo.getMac());
+                }
+            }
 
             redirectAttributes.addFlashAttribute("mensaje",
                     idAux == null ? "Servicio creado exitosamente" : "Servicio actualizado exitosamente");
@@ -191,7 +199,7 @@ public class ServiciosController {
             redirectAttributes.addFlashAttribute("error", "Error al guardar el servicio");
         }
 
-        return "redirect:/sdn/servicios";
+        return "redirect:http://192.168.200.200:8080/sdn/servicios";
     }
 
     @GetMapping("/ver/{id}")
@@ -209,7 +217,7 @@ public class ServiciosController {
             model.addAttribute("usuarioActual", usuarioActual);
             return "servicios/ver_servicio";
         } catch (EntityNotFoundException e) {
-            return "redirect:/sdn/servicios";
+            return "redirect:http://192.168.200.200:8080/sdn/servicios";
         }
     }
 
@@ -412,7 +420,15 @@ public class ServiciosController {
 
             spd.setEstado(1); // Aprobado
             servicioPorDispositivoRepository.save(spd);
-
+            Set<Dispositivo>dispositivos=usuario.getDispositivos();
+            for(Dispositivo dispositivo:dispositivos) {
+                List<ServicioPorDispositivo>serviciosPorDispositivo=dispositivo.getServicioPorDispositivos();
+                for(ServicioPorDispositivo servicio:serviciosPorDispositivo) {
+                    if(servicio.getServicio().getId()==spd.getServicio().getId()) {
+                        httpClientService.eliminarReglasPorMac(dispositivo.getMac());
+                    }
+                }
+            }
             response.put("status", "success");
             response.put("message", "Solicitud aprobada exitosamente");
             return ResponseEntity.ok(response);
@@ -480,6 +496,7 @@ public class ServiciosController {
 
             // Eliminar el acceso
             servicioPorDispositivoRepository.delete(spd);
+            httpClientService.eliminarReglasPorMac(spd.getDispositivo().getMac());
 
             response.put("status", "success");
             response.put("message", "Acceso revocado exitosamente");
@@ -502,13 +519,13 @@ public class ServiciosController {
             // Validar si hay dispositivos asociados al servicio
             if (!servicio.getServicioPorDispositivos().isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "El servicio está asociado a dispositivos y no puede ser eliminado.");
-                return "redirect:/sdn/servicios";
+                return "redirect:http://192.168.200.200:8080/sdn/servicios";
             }
 
             // Validar si hay puertos asociados al servicio
             if (!servicio.getPuertoPorServicios().isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "El servicio está asociado a puertos y no puede ser eliminado.");
-                return "redirect:/sdn/servicios";
+                return "redirect:http://192.168.200.200:8080/sdn/servicios";
             }
 
             // Si no está asociado a dispositivos ni puertos, proceder con la eliminación
@@ -518,7 +535,7 @@ public class ServiciosController {
             redirectAttributes.addFlashAttribute("error", "El servicio con ID " + id + " no existe.");
         }
 
-        return "redirect:/sdn/servicios";
+        return "redirect:http://192.168.200.200:8080/sdn/servicios";
     }
 
 

@@ -90,7 +90,7 @@ public class UsuariosController {
             return "usuarios/formulario_usuarios";
         } catch (EntityNotFoundException e) {
             log.error("Error al buscar usuario: {}", e.getMessage());
-            return "redirect:/sdn/usuarios";
+            return "redirect:http://192.168.200.200:8080/sdn/usuarios";
         }
     }
 
@@ -136,7 +136,7 @@ public class UsuariosController {
             redirectAttributes.addFlashAttribute("error", "Error al guardar el usuario");
         }
 
-        return "redirect:/sdn/login";
+        return "redirect:http://192.168.200.200:8080/sdn/login";
     }
 
     // Ver detalles del usuario
@@ -154,7 +154,7 @@ public class UsuariosController {
             return "usuarios/ver_usuario";
         } catch (EntityNotFoundException e) {
             log.error("Error al buscar usuario: {}", e.getMessage());
-            return "redirect:/sdn/usuarios";
+            return "redirect:http://192.168.200.200:8080/sdn/usuarios";
         }
     }
 
@@ -174,7 +174,7 @@ public class UsuariosController {
                 redirectAttributes.addFlashAttribute("error",
                         "No se puede eliminar el usuario porque tiene " + dispositivos.size() +
                                 " dispositivo(s) asociado(s)");
-                return "redirect:/sdn/usuarios";
+                return "redirect:http://192.168.200.200:8080/sdn/usuarios";
             }
 
             // Verificar si tiene servicios creados
@@ -183,7 +183,7 @@ public class UsuariosController {
                 redirectAttributes.addFlashAttribute("error",
                         "No se puede eliminar el usuario porque ha creado " + servicios.size() +
                                 " servicios(s)");
-                return "redirect:/sdn/usuarios";
+                return "redirect:http://192.168.200.200:8080/sdn/usuarios";
             }
 
             usuarioRepository.delete(usuario);
@@ -194,7 +194,7 @@ public class UsuariosController {
             redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el usuario");
         }
 
-        return "redirect:/sdn/usuarios";
+        return "redirect:http://192.168.200.200:8080/sdn/usuarios";
     }
 
     @PostMapping("/solicitud/{id}/aprobar")
@@ -257,6 +257,6 @@ public class UsuariosController {
                                                 RedirectAttributes redirectAttributes) {
         log.error("Error de entidad no encontrada: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        return "redirect:/sdn/usuarios";
+        return "redirect:http://192.168.200.200:8080/sdn/usuarios";
     }
 }

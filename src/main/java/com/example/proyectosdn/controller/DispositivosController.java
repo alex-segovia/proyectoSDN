@@ -4,6 +4,7 @@ import com.example.proyectosdn.entity.Dispositivo;
 import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
+import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.repository.*;
 import com.example.proyectosdn.service.UsuarioSesionService;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,6 +41,8 @@ public class DispositivosController {
 
     @Autowired
     private UsuarioSesionService usuarioSesionService;
+    @Autowired
+    private HttpClientService httpClientService;
 
     // Listar dispositivos
     @GetMapping("")
@@ -114,6 +117,7 @@ public class DispositivosController {
                                      RedirectAttributes redirectAttributes,
                                      HttpServletRequest request) {
         Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
+        dispositivo.setMac(dispositivo.getMac().toLowerCase());
         log.info("Guardando dispositivo: {}", dispositivo);
 
         try {
@@ -139,12 +143,24 @@ public class DispositivosController {
                     result.rejectValue("mac", "error.dispositivo", "La dirección MAC ya está registrada");
                     prepararModelo(model, usuarioActual);
                     return "dispositivos/formulario_dispositivos";
+                }else {
+                    Dispositivo dispositivoEncontrado=dispositivoExistente.get();
+                    dispositivoEncontrado.setNombre(dispositivo.getNombre());
+                    dispositivoEncontrado.setEstado(dispositivo.getEstado());
+                    dispositivoEncontrado.setUsuario(dispositivo.getUsuario());
+                    dispositivoEncontrado.setMac(dispositivo.getMac().toLowerCase());
+                    dispositivoEncontrado.setAutenticado(dispositivo.getAutenticado());
+                    dispositivoRepository.save(dispositivoEncontrado);
+                    redirectAttributes.addFlashAttribute("mensaje", "Dispositivo guardado exitosamente");
+                    httpClientService.eliminarReglasPorMac(dispositivo.getMac());
+                    return "redirect:http://192.168.200.200:8080/sdn/dispositivos";
                 }
             }
 
             dispositivoRepository.save(dispositivo);
             redirectAttributes.addFlashAttribute("mensaje", "Dispositivo guardado exitosamente");
-            return "redirect:/sdn/dispositivos";
+            httpClientService.eliminarReglasPorMac(dispositivo.getMac());
+            return "redirect:http://192.168.200.200:8080/sdn/dispositivos";
 
         } catch (Exception e) {
             log.error("Error al guardar dispositivo: ", e);
@@ -186,7 +202,6 @@ public class DispositivosController {
     @PostMapping("/eliminar/{id}")
     public String eliminarDispositivo(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         log.info("Eliminando dispositivo ID: {}", id);
-
         try {
             Dispositivo dispositivo = dispositivoRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Dispositivo no encontrado"));
@@ -194,6 +209,7 @@ public class DispositivosController {
             // Eliminar primero las relaciones con servicios
             servicioPorDispositivoRepository.deleteAll(dispositivo.getServicioPorDispositivos());
             dispositivoRepository.delete(dispositivo);
+            httpClientService.eliminarReglasPorMac(dispositivo.getMac());
 
             redirectAttributes.addFlashAttribute("mensaje", "Dispositivo eliminado exitosamente");
         } catch (Exception e) {
@@ -201,7 +217,7 @@ public class DispositivosController {
             redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el dispositivo");
         }
 
-        return "redirect:/sdn/dispositivos";
+        return "redirect:http://192.168.200.200:8080/sdn/dispositivos";
     }
 
     // Agregar servicio (antes era atributo) al dispositivo
@@ -227,13 +243,14 @@ public class DispositivosController {
 
             servicioPorDispositivoRepository.save(spd);
             redirectAttributes.addFlashAttribute("mensaje", "Servicio agregado exitosamente");
+            httpClientService.eliminarReglasPorMac(dispositivo.getMac());
 
         } catch (Exception e) {
             log.error("Error al agregar servicio: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("error", "No se pudo agregar el servicio");
         }
 
-        return "redirect:/dispositivos/ver/" + idDispositivo;
+        return "redirect:http://192.168.200.200:8080/dispositivos/ver/" + idDispositivo;
     }
 
     // Eliminar servicio del dispositivo
@@ -249,13 +266,15 @@ public class DispositivosController {
 
             servicioPorDispositivoRepository.delete(apd);
             redirectAttributes.addFlashAttribute("mensaje", "Servicio eliminado exitosamente");
-
+            if(apd.getDispositivo()!=null){
+                httpClientService.eliminarReglasPorMac(apd.getDispositivo().getMac());
+            }
         } catch (Exception e) {
             log.error("Error al eliminar servicio: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el servicio");
         }
 
-        return "redirect:/sdn/dispositivos/ver/" + idDispositivo;
+        return "redirect:http://192.168.200.200:8080/sdn/dispositivos/ver/" + idDispositivo;
     }
 
     // Manejador global de excepciones
@@ -264,6 +283,6 @@ public class DispositivosController {
                                                 RedirectAttributes redirectAttributes) {
         log.error("Error de entidad no encontrada: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        return "redirect:/sdn/dispositivos";
+        return "redirect:http://192.168.200.200:8080/sdn/dispositivos";
     }
 }
