@@ -53,13 +53,17 @@
                 <tr th:each="servicio : ${servicios}">
                     <td th:text="${servicio.id}"></td>
                     <td th:text="${servicio.nombre}"></td>
-                    <td th:text="${servicio.puertoPorServicios.get()}"></td>
+                    <td style="cursor: pointer; font-weight: bold"
+                        th:attr="data-id=${servicio.id}, data-nombre=${servicio.nombre}, data-puertos=${#json.write(servicio.puertos)}"
+                        onclick="mostrarPuertos(this)">
+                        Ver puertos
+                    </td>
                     <td th:text="${servicio.usuarioCreador != null ?
                                 servicio.usuarioCreador.nombres + ' ' + servicio.usuarioCreador.apellidoPaterno : 'No asignado'}">
                     </td>
                     <td class="text-center">
                                 <span class="badge bg-info"
-                                      th:text="${servicio.servicioPorDispositivos.size()}">0</span>
+                                      th:text="${servicio.cantidadDispositivos}">0</span>
                     </td>
                     <td class="text-center">
                                 <span th:if="${servicio.estado == 1}"
@@ -94,7 +98,7 @@
     </div>
 </div>
 
-<div class="container-fluid mt-4">
+<div th:if="${serviciosDisponibles!=null}" class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Servicios disponibles</h2>
     </div>
@@ -128,13 +132,17 @@
                 <tr th:each="servicio : ${serviciosDisponibles}">
                     <td th:text="${servicio.id}"></td>
                     <td th:text="${servicio.nombre}"></td>
-                    <td th:text="${servicio.puertoPorServicios.puerto.numeroPuerto}"></td>
+                    <td style="cursor: pointer; font-weight: bold"
+                        th:attr="data-id=${servicio.id}, data-nombre=${servicio.nombre}, data-puertos=${servicio.puertos}"
+                        onclick="mostrarPuertos(this)">
+                        Ver puertos
+                    </td>
                     <td th:text="${servicio.usuarioCreador != null ?
                                 servicio.usuarioCreador.nombres + ' ' + servicio.usuarioCreador.apellidoPaterno : 'No asignado'}">
                     </td>
                     <td class="text-center">
                                 <span class="badge bg-info"
-                                      th:text="${servicio.servicioPorDispositivos.size()}">0</span>
+                                      th:text="${servicio.cantidadDispositivos}">0</span>
                     </td>
                     <td class="text-center">
                                 <span th:if="${servicio.estado == 1}"
@@ -149,17 +157,79 @@
                                title="Ver detalles">
                                 <i class='bx bx-show'></i>
                             </a>
-                            <a th:href="@{/sdn/servicios/editar/{id}(id=${servicio.id})}"
+                            <a th:onclick="'popupSolicitarServicio('+ ${servicio.id} +')'"
                                class="btn btn-warning btn-sm"
-                               title="Editar">
+                               title="Solicitar">
                                 <i class='bx bx-edit'></i>
                             </a>
-                            <button type="button"
-                                    class="btn btn-danger btn-sm"
-                                    title="Eliminar"
-                                    th:onclick="'confirmarEliminar(' + ${servicio.id} + ')'">
-                                <i class='bx bx-trash'></i>
-                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:if="${serviciosDisponiblesSuperadmin!=null}" class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Servicios disponibles</h2>
+    </div>
+
+    <!-- Alertas -->
+    <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${mensaje}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-body">
+            <table id="serviciosDisponiblesSuperadminTable" class="table table-striped" style="width:100%">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Puerto</th>
+                    <th>Usuario Creador</th>
+                    <th>Dispositivos</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="servicio : ${serviciosDisponiblesSuperadmin}">
+                    <td th:text="${servicio.id}"></td>
+                    <td th:text="${servicio.nombre}"></td>
+                    <td style="cursor: pointer; font-weight: bold"
+                        th:attr="data-id=${servicio.id}, data-nombre=${servicio.nombre}, data-puertos=${servicio.puertos}"
+                        onclick="mostrarPuertos(this)">
+                        Ver puertos
+                    </td>
+                    <td th:text="${servicio.usuarioCreador != null ?
+                                servicio.usuarioCreador.nombres + ' ' + servicio.usuarioCreador.apellidoPaterno : 'No asignado'}">
+                    </td>
+                    <td class="text-center">
+                                <span class="badge bg-info"
+                                      th:text="${servicio.cantidadDispositivos}">0</span>
+                    </td>
+                    <td class="text-center">
+                                <span th:if="${servicio.estado == 1}"
+                                      class="badge bg-success">Activo</span>
+                        <span th:unless="${servicio.estado == 1}"
+                              class="badge bg-danger">Inactivo</span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a th:href="@{/sdn/servicios/ver/{id}(id=${servicio.id})}"
+                               class="btn btn-info btn-sm"
+                               title="Ver detalles">
+                                <i class='bx bx-show'></i>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -284,6 +354,50 @@
 
         // Establecer el orden después de la inicialización
         table.order([0, 'desc']).draw();
+
+        const tableDisponiblesSuperadmin = $('#serviciosDisponiblesSuperadminTable').DataTable({
+            language: {
+                url: '/sdn/json/es.json'
+            },
+            responsive: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="bx bx-file me-1"></i> Excel',
+                    className: 'btn btn-success btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="bx bx-file-pdf me-1"></i> PDF',
+                    className: 'btn btn-danger btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="bx bx-printer me-1"></i> Imprimir',
+                    className: 'btn btn-primary btn-sm',
+                    exportOptions: {
+                        columns: [0,1,2,3,4,5]
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    targets: -1,
+                    orderable: false,
+                    searchable: false
+                }
+            ]
+        });
+
+        // Establecer el orden después de la inicialización
+        tableDisponiblesSuperadmin.order([0, 'desc']).draw();
     });
 
     function confirmarEliminar(id) {
@@ -299,6 +413,36 @@
             $(this).remove();
         });
     }, 5000);
+
+    function popupSolicitarServicio(id) {
+        Swal.fire({
+            title: 'Solicitar servicio',
+            text: '¿Desea solicitar este servicio?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Solicitar',
+            cancelButtonText: 'No deseo',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let data = {
+                    "id" : id,
+                };
+
+                $.ajax({
+                    url: "/sdn/servicios/solicitar",
+                    type: "POST",
+                    data: data,
+                    success: function (response) {
+                        console.log(response.content);
+                    },
+                    error: function (xhr, status, error) {
+                        const jsonResponse=xhr.responseText;
+                        console.log(jsonResponse);
+                    }
+                });
+            }
+        });
+    }
 
     function confirmarCerrarSesion() {
         Swal.fire({
@@ -354,6 +498,41 @@
             }
         });
     }
+
+    function mostrarPuertos(element) {
+        // Leer los valores de los atributos data-*
+        const puertosJson = element.getAttribute("data-puertos");
+        const nombre = element.getAttribute("data-nombre");
+
+        // Validar y parsear los datos JSON
+        if (!puertosJson) {
+            console.error("No hay datos de puertos disponibles.");
+            return;
+        }
+
+        const puertos = JSON.parse(puertosJson);
+
+        // Construir el contenido HTML dinámicamente
+        let htmlContent = '<div class="card">' +
+            '<div class="card-body">' +
+            '<table class="table table-striped" style="width:100%">' +
+            '<thead><tr><th>Puertos</th></tr></thead>' +
+            '<tbody>';
+
+        puertos.forEach(puerto => {
+            htmlContent += `<tr><td>${puerto}</td></tr>`;
+        });
+
+        htmlContent += '</tbody></table></div></div>';
+
+        // Mostrar el modal con SweetAlert
+        Swal.fire({
+            title: `Puertos del servicio ${nombre}`,
+            html: htmlContent,
+            confirmButtonText: 'Entendido',
+        });
+    }
+
 </script>
 </body>
 </html>

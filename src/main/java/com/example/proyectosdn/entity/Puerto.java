@@ -18,7 +18,7 @@ public class Puerto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "puerto", nullable = false)
+    @Column(name = "puertocol", nullable = false)
     private Integer numeroPuerto;
 
     @OneToMany(mappedBy = "puerto")

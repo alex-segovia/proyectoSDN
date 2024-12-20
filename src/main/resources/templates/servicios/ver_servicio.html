@@ -27,11 +27,6 @@
                         Información del Servicio
                     </h5>
                     <div>
-                        <a th:href="@{/sdn/servicios/editar/{id}(id=${servicio.id})}"
-                           class="btn btn-light btn-sm">
-                            <i class='bx bx-edit me-1'></i>
-                            Editar
-                        </a>
                         <a th:href="@{/sdn/servicios}"
                            class="btn btn-light btn-sm ms-2">
                             <i class='bx bx-arrow-back me-1'></i>
@@ -52,9 +47,9 @@
                                     <dt class="col-sm-4">Nombre:</dt>
                                     <dd class="col-sm-8" th:text="${servicio.nombre}"></dd>
 
-                                    <dt class="col-sm-4">Puerto:</dt>
+                                    <dt class="col-sm-4">Puertos:</dt>
                                     <dd class="col-sm-8">
-                                        <span class="badge bg-secondary" th:text="${servicio.puerto}"></span>
+                                        <span style="cursor: pointer" th:attr="data-id=${servicio.id}, data-nombre=${servicio.nombre}, data-puertos=${servicio.puertos}" onclick="mostrarPuertos(this)" class="badge bg-secondary">Ver puertos</span>
                                     </dd>
 
                                     <dt class="col-sm-4">Estado:</dt>
@@ -117,7 +112,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive" th:if="${!servicio.servicioPorDispositivos.empty}">
+                    <div class="table-responsive" th:if="${servicio.servicioPorDispositivo!=null}">
                         <table class="table table-hover" id="dispositivosTable">
                             <thead>
                             <tr>
@@ -130,7 +125,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="apd : ${servicio.servicioPorDispositivos}">
+                            <tr th:each="apd : ${servicio.servicioPorDispositivo}">
                                 <td th:text="${apd.dispositivo.id}"></td>
                                 <td th:text="${apd.dispositivo.nombre}"></td>
                                 <td th:text="${apd.dispositivo.mac}"></td>
@@ -150,7 +145,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div th:if="${servicio.servicioPorDispositivo.empty}"
+                    <div th:if="${servicio.servicioPorDispositivo==null}"
                          class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
                         Este servicio no tiene dispositivos asociados
@@ -232,6 +227,40 @@
                     }
                 });
             }
+        });
+    }
+
+    function mostrarPuertos(element) {
+        // Leer los valores de los atributos data-*
+        const puertosJson = element.getAttribute("data-puertos");
+        const nombre = element.getAttribute("data-nombre");
+
+        // Validar y parsear los datos JSON
+        if (!puertosJson) {
+            console.error("No hay datos de puertos disponibles.");
+            return;
+        }
+
+        const puertos = JSON.parse(puertosJson);
+
+        // Construir el contenido HTML dinámicamente
+        let htmlContent = '<div class="card">' +
+            '<div class="card-body">' +
+            '<table class="table table-striped" style="width:100%">' +
+            '<thead><tr><th>Puertos</th></tr></thead>' +
+            '<tbody>';
+
+        puertos.forEach(puerto => {
+            htmlContent += `<tr><td>${puerto}</td></tr>`;
+        });
+
+        htmlContent += '</tbody></table></div></div>';
+
+        // Mostrar el modal con SweetAlert
+        Swal.fire({
+            title: `Puertos del servicio ${nombre}`,
+            html: htmlContent,
+            confirmButtonText: 'Entendido',
         });
     }
 </script>

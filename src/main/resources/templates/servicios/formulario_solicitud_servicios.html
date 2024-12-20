@@ -23,17 +23,14 @@
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>
-                        <span th:text="${servicio.id != null ? 'Editar Servicio' : 'Nuevo Servicio'}"></span>
+                        <span>Solicitar Servicio</span>
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/sdn/servicios/guardar}"
-                          th:object="${servicio}"
-                          method="POST"
-                          class="needs-validation"
-                          novalidate>
+                    <form th:action="@{/sdn/servicios/solicitar/guardar}"
+                          method="POST">
 
-                        <input type="hidden" th:field="*{id}">
+                        <input type="hidden" th:name="id" th:value="${servicio.id}">
 
                         <div class="row">
                             <!-- Nombre del Servicio -->
@@ -45,16 +42,10 @@
                                         </span>
                                     <input type="text"
                                            class="form-control"
-                                           th:field="*{nombre}"
-                                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid' : ''"
+                                           th:field="${servicio.nombre}"
                                            required
                                            minlength="3"
                                            maxlength="45">
-                                    <div class="invalid-feedback"
-                                         th:errors="*{nombre}"
-                                         th:if="${#fields.hasErrors('nombre')}">
-                                        Error en el nombre
-                                    </div>
                                 </div>
                                 <small class="text-muted">El nombre debe tener entre 3 y 45 caracteres</small>
                             </div>
