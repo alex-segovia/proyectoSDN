@@ -113,7 +113,6 @@ public class DispositivosController {
                                      @RequestParam(name = "autenticado", required = false) Integer autenticado,
                                      RedirectAttributes redirectAttributes,
                                      HttpServletRequest request) {
-
         Usuario usuarioActual = usuarioSesionService.obtenerUsuarioActivo(request);
         log.info("Guardando dispositivo: {}", dispositivo);
 
@@ -151,6 +150,7 @@ public class DispositivosController {
             return "dispositivos/formulario_dispositivos";
         }
     }
+
 
     private void prepararModelo(Model model, Usuario usuarioActual) {
         model.addAttribute("usuarios", usuarioRepository.findAll());

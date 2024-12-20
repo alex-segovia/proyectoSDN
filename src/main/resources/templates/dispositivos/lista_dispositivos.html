@@ -44,7 +44,7 @@
                     <th>Nombre</th>
                     <th>MAC</th>
                     <th>Usuario</th>
-                    <th>Autenticado</th>
+                    <th>Nivel de autenticación</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -55,16 +55,7 @@
                     <td th:text="${dispositivo.nombre}"></td>
                     <td th:text="${dispositivo.mac}"></td>
                     <td th:text="${dispositivo.usuario != null ? dispositivo.usuario.nombres + ' ' + dispositivo.usuario.apellidoPaterno : 'No asignado'}"></td>
-                    <td class="text-center">
-                                <span th:if="${dispositivo.autenticado}"
-                                      class="badge bg-success">
-                                    <i class='bx bx-check'></i>
-                                </span>
-                        <span th:unless="${dispositivo.autenticado}"
-                              class="badge bg-danger">
-                                    <i class='bx bx-x'></i>
-                                </span>
-                    </td>
+                    <td th:text="${dispositivo.autenticado}"></td>
                     <td class="text-center">
                                 <span th:if="${dispositivo.estado == 1}"
                                       class="badge bg-success">Activo</span>

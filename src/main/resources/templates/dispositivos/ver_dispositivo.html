@@ -77,16 +77,17 @@
                                             </span>
                                     </dd>
 
-                                    <dt class="col-sm-4">Autenticado:</dt>
+                                    <dt class="col-sm-4">Nivel de Autenticación:</dt>
                                     <dd class="col-sm-8">
-                                            <span th:if="${dispositivo.autenticado}"
-                                                  class="badge bg-success">
-                                                <i class='bx bx-check-circle me-1'></i>Sí
-                                            </span>
-                                        <span th:unless="${dispositivo.autenticado}"
-                                              class="badge bg-danger">
-                                                <i class='bx bx-x-circle me-1'></i>No
-                                            </span>
+                                        <span th:if="${dispositivo.autenticado == 1}" class="badge bg-success">
+                                            <i class='bx bx-check-circle me-1'></i> Acceso Medio: Puede acceder a dispositivos del mismo servicio y es completamente accesible
+                                        </span>
+                                        <span th:if="${dispositivo.autenticado == 0}" class="badge bg-danger">
+                                            <i class='bx bx-x-circle me-1'></i> Invitado: Accesible, pero no puede acceder a otros
+                                        </span>
+                                        <span th:if="${dispositivo.autenticado == 2}" class="badge bg-warning text-dark">
+                                            <i class='bx-x-circle me-1'></i> Restricto: Solo accesible por dispositivos con el mismo servicio y puede acceder a los demás dispositivos
+                                        </span>
                                     </dd>
                                 </dl>
                             </div>
