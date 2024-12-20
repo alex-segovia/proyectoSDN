@@ -8,7 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "usuario")
@@ -58,8 +60,8 @@ public class Usuario {
     private Integer estado;
 
     @OneToMany(mappedBy = "usuario")
-    private List<Dispositivo> dispositivos = new ArrayList<>();
+    private Set<Dispositivo> dispositivos = new HashSet<>();
 
     @OneToMany(mappedBy = "usuarioCreador")
-    private List<Servicio> servicios = new ArrayList<>();
+    private Set<Servicio> servicios = new HashSet<>();
 }

@@ -4,11 +4,13 @@ import com.example.proyectosdn.entity.*;
 import com.example.proyectosdn.extra.HttpClientService;
 import com.example.proyectosdn.extra.Utilities;
 import com.example.proyectosdn.repository.*;
+import jakarta.persistence.Column;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +111,22 @@ public class AuthController {
             responseMap.put("status","success");
             content.put("id",dispositivo.getId());
             content.put("nombre",dispositivo.getNombre());
-            content.put("usuario",dispositivo.getUsuario());
+            HashMap<String,Object>usuarioMap=new HashMap<>();
+            Usuario usuario=dispositivo.getUsuario();
+            if(usuario!=null){
+                usuarioMap.put("id",usuario.getId());
+                usuarioMap.put("username",usuario.getUsername());
+                usuarioMap.put("attribute",usuario.getAttribute());
+                usuarioMap.put("op",usuario.getOp());
+                usuarioMap.put("value",usuario.getValue());
+                usuarioMap.put("nombres",usuario.getNombres());
+                usuarioMap.put("apellidoPaterno",usuario.getApellidoPaterno());
+                usuarioMap.put("apellidoMaterno",usuario.getApellidoMaterno());
+                usuarioMap.put("rol",usuario.getRol());
+                usuarioMap.put("dni",usuario.getDni());
+                usuarioMap.put("estado",usuario.getEstado());
+                content.put("usuario",usuarioMap);
+            }
             content.put("autenticado",dispositivo.getAutenticado());
             content.put("estado",dispositivo.getEstado());
             System.out.println("Success");
@@ -158,7 +175,9 @@ public class AuthController {
 
 
     @PostMapping("/autenticar")
-    public ResponseEntity<Map<String,Object>> autenticar(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletRequest httpRequest) {
+    public ResponseEntity<Map<String,Object>> autenticar(@RequestBody Map<String,Object> data, HttpServletRequest httpRequest) {
+        String username = (String)data.get("username");
+        String password = (String)data.get("password");
         Map<String,Object>responseMap=new HashMap<>();
         try {
             String ipAdd = httpRequest.getHeader("X-Real-IP");
@@ -170,6 +189,19 @@ public class AuthController {
             }
             System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
             String mac=httpClientService.obtenerMacPorIp(ipAdd);
+            if(mac==null){
+                switch (ipAdd){
+                    case "10.0.0.1":
+                        mac="fa:16:3e:73:0a:d2";
+                        break;
+                    case "10.0.0.2":
+                        mac="fa:16:3e:2b:a6:da";
+                        break;
+                    case "10.0.0.3":
+                        mac="fa:16:3e:a6:3c:89";
+                        break;
+                }
+            }
             System.out.println("MAC obtenida: "+mac);
 
             String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);

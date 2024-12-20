@@ -16,10 +16,10 @@ public class PuertoPorServicio {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "servicio_id", nullable = false)
+    @JoinColumn(name = "id_servicio", nullable = false)
     private Servicio servicio;
 
     @ManyToOne
-    @JoinColumn(name = "puerto_id", nullable = false)
+    @JoinColumn(name = "id_puerto", nullable = false)
     private Puerto puerto;
 }

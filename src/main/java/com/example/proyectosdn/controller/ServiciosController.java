@@ -1,28 +1,41 @@
 package com.example.proyectosdn.controller;
 
+import com.example.proyectosdn.dto.Servicio2DTO;
+import com.example.proyectosdn.dto.ServicioDTO;
+import com.example.proyectosdn.dto.UsuarioDTO;
+import com.example.proyectosdn.entity.PuertoPorServicio;
 import com.example.proyectosdn.entity.Servicio;
 import com.example.proyectosdn.entity.ServicioPorDispositivo;
 import com.example.proyectosdn.entity.Usuario;
 import com.example.proyectosdn.repository.ServicioPorDispositivoRepository;
 import com.example.proyectosdn.repository.ServicioRepository;
+import com.example.proyectosdn.repository.SesionActivaRepository;
 import com.example.proyectosdn.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/sdn/servicios")
 @Slf4j
 public class ServiciosController {
+    @Autowired
+    private SesionActivaRepository sesionActivaRepository;
 
     @Autowired
     private ServicioRepository servicioRepository;
@@ -35,9 +48,37 @@ public class ServiciosController {
 
     // Listar servicios
     @GetMapping("")
-    public String listarServicios(Model model) {
-        log.info("Listando todos los servicios");
-        model.addAttribute("servicios", servicioRepository.findAll());
+    public String listarServicios(Model model, HttpServletRequest httpRequest) {
+        String ipAdd = httpRequest.getHeader("X-Real-IP");
+        if (ipAdd == null || ipAdd.isEmpty()) {
+            ipAdd = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getRemoteAddr();
+            }
+        }
+        String rolUsuario = sesionActivaRepository.userRolPorIp(ipAdd)!=null?sesionActivaRepository.userRolPorIp(ipAdd):"asd";
+
+        if(rolUsuario.equals("Superadmin")){
+            log.info("Listando todos los servicios");
+            List<Servicio> servicios = servicioRepository.findAll();
+            List<ServicioDTO> dtos = servicios.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            model.addAttribute("serviciosDisponiblesSuperadmin", dtos);
+        }else{
+            log.info("Listando todos mis servicios");
+            List<Servicio> servicios = servicioRepository.findByUsuarioCreadorId(sesionActivaRepository.userIdPorIp(ipAdd));
+            List<ServicioDTO> dtos = servicios.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            model.addAttribute("servicios", dtos);
+            log.info("Listando los servicios disponibles");
+            List<Servicio> servicios2 = servicioRepository.listarServiciosDisponbiles(sesionActivaRepository.userIdPorIp(ipAdd));
+            List<ServicioDTO> dtos2 = servicios2.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            model.addAttribute("serviciosDisponibles", dtos2);
+        }
         model.addAttribute("active", "servicios");
         return "servicios/lista_servicios";
     }
@@ -125,7 +166,7 @@ public class ServiciosController {
             Servicio servicio = servicioRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
-            model.addAttribute("servicio", servicio);
+            model.addAttribute("servicio", convertToDTO2(servicio));
             model.addAttribute("active", "servicios");
             return "servicios/ver_servicio";
         } catch (EntityNotFoundException e) {
@@ -172,5 +213,83 @@ public class ServiciosController {
         log.error("Error de entidad no encontrada: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("error", ex.getMessage());
         return "redirect:/servicios";
+    }
+
+    private ServicioDTO convertToDTO(Servicio servicio) {
+        ServicioDTO dto = new ServicioDTO();
+        dto.setId(servicio.getId());
+        dto.setNombre(servicio.getNombre());
+        dto.setEstado(servicio.getEstado());
+
+        if (servicio.getUsuarioCreador() != null) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO();
+            usuarioDTO.setId(servicio.getUsuarioCreador().getId());
+            usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
+            usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
+            usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
+            dto.setUsuarioCreador(usuarioDTO);
+        }
+
+        dto.setPuertos(servicio.getPuertoPorServicios().stream()
+                .map(pps -> pps.getPuerto().getNumeroPuerto())
+                .collect(Collectors.toList()));
+
+        dto.setCantidadDispositivos(servicio.getServicioPorDispositivos().size());
+
+        return dto;
+    }
+
+    private Servicio2DTO convertToDTO2(Servicio servicio) {
+        Servicio2DTO dto = new Servicio2DTO();
+        dto.setId(servicio.getId());
+        dto.setNombre(servicio.getNombre());
+        dto.setEstado(servicio.getEstado());
+
+        if (servicio.getUsuarioCreador() != null) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO();
+            usuarioDTO.setId(servicio.getUsuarioCreador().getId());
+            usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
+            usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
+            usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
+            dto.setUsuarioCreador(usuarioDTO);
+        }
+
+        dto.setPuertos(servicio.getPuertoPorServicios().stream()
+                .map(pps -> pps.getPuerto().getNumeroPuerto())
+                .collect(Collectors.toList()));
+
+        dto.setServicioPorDispositivo(servicio.getServicioPorDispositivos());
+
+        return dto;
+    }
+
+    //Falta completar uwu: que se obtenga el id del dispositvo y se guarde en base de datos en la tabla servicio_por_dispositivo, con estado 0
+    @PostMapping("/solicitar")
+    public ResponseEntity<Map<String,Object>> solicitarServicio(@RequestParam("id") String id, HttpServletRequest httpRequest) {
+        Map<String,Object>responseMap=new HashMap<>();
+        try{
+            String ipAdd = httpRequest.getHeader("X-Real-IP");
+            if (ipAdd == null || ipAdd.isEmpty()) {
+                ipAdd = httpRequest.getHeader("X-Forwarded-For");
+                if (ipAdd == null || ipAdd.isEmpty()) {
+                    ipAdd = httpRequest.getRemoteAddr();
+                }
+            }
+            Integer idSesionActiva = sesionActivaRepository.idSesionActivaPorIp(ipAdd);
+            if(idSesionActiva!=null){
+
+                return ResponseEntity.ok(responseMap);
+            }else{
+                responseMap.put("status","error");
+                responseMap.put("content","Este dispositivo no tiene una sesión activa");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("Unexpected response type: " + e.getMessage());
+            responseMap.put("status","error");
+            responseMap.put("content",e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
+        }
     }
 }

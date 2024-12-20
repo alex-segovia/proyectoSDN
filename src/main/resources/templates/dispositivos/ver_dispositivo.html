@@ -27,11 +27,14 @@
                         Información del Dispositivo
                     </h5>
                     <div>
-                        <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
-                           class="btn btn-light btn-sm">
-                            <i class='bx bx-edit me-1'></i>
-                            Editar
-                        </a>
+                        <!-- Mostrar editar solo si es su dispositivo o es Superadmin -->
+                        <th:block th:if="${usuarioActivo.rol == 'Superadmin' || (dispositivo.usuario != null && usuarioActivo.id == dispositivo.usuario.id)}">
+                            <a th:href="@{/sdn/dispositivos/editar/{id}(id=${dispositivo.id})}"
+                               class="btn btn-light btn-sm">
+                                <i class='bx bx-edit me-1'></i>
+                                Editar
+                            </a>
+                        </th:block>
                         <a th:href="@{/sdn/dispositivos}"
                            class="btn btn-light btn-sm ms-2">
                             <i class='bx bx-arrow-back me-1'></i>
@@ -134,13 +137,13 @@
                     </h5>
                     <button class="btn btn-light btn-sm"
                             data-bs-toggle="modal"
-                            data-bs-target="#agregarAtributoModal">
+                            data-bs-target="#agregarServicioModal">
                         <i class='bx bx-plus me-1'></i>
-                        Agregar Atributo
+                        Agregar Servicio
                     </button>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive" th:if="${!dispositivo.atributoPorDispositivos.empty}">
+                    <div class="table-responsive" th:if="${!dispositivo.servicioPorDispositivos.empty}">
                         <table class="table table-hover" id="serviciosTable">
                             <thead>
                             <tr>
@@ -153,20 +156,20 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="atributo : ${dispositivo.atributoPorDispositivos}">
-                                <td th:text="${atributo.atributo.id}"></td>
-                                <td th:text="${atributo.atributo.nombre}"></td>
-                                <td th:text="${atributo.atributo.puerto}"></td>
-                                <td th:text="${atributo.motivo}"></td>
+                            <tr th:each="servicio : ${dispositivo.servicioPorDispositivos}">
+                                <td th:text="${servicio.servicio.id}"></td>
+                                <td th:text="${servicio.servicio.nombre}"></td>
+                                <td th:text="${servicio.servicio.puerto}"></td>
+                                <td th:text="${servicio.motivo}"></td>
                                 <td>
-                                            <span th:if="${atributo.estado == 1}"
+                                            <span th:if="${servicio.estado == 1}"
                                                   class="badge bg-success">Activo</span>
-                                    <span th:unless="${atributo.estado == 1}"
+                                    <span th:unless="${servicio.estado == 1}"
                                           class="badge bg-danger">Inactivo</span>
                                 </td>
                                 <td>
                                     <button class="btn btn-danger btn-sm"
-                                            th:onclick="'confirmarEliminarAtributo(' + ${atributo.id} + ')'">
+                                            th:onclick="'confirmarEliminarServicio(' + ${servicio.id} + ')'">
                                         <i class='bx bx-trash'></i>
                                     </button>
                                 </td>
@@ -174,7 +177,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div th:if="${dispositivo.atributoPorDispositivos.empty}"
+                    <div th:if="${dispositivo.servicioPorDispositivos.empty}"
                          class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
                         Este dispositivo no tiene servicios asignados
@@ -185,21 +188,21 @@
     </div>
 </div>
 
-<!-- Modal para Agregar Atributo -->
-<div class="modal fade" id="agregarAtributoModal" tabindex="-1">
+<!-- Modal para Agregar Servicio -->
+<div class="modal fade" id="agregarServicioModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Agregar Atributo</h5>
+                <h5 class="modal-title">Agregar Servicio</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/sdn/dispositivos/agregarAtributo}" method="POST">
+            <form th:action="@{/sdn/dispositivos/agregarServicio}" method="POST">
                 <input type="hidden" name="idDispositivo" th:value="${dispositivo.id}">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="idAtributo" class="form-label">Atributo</label>
-                        <select class="form-select" id="idAtributo" name="idAtributo" required>
-                            <option value="">Seleccione un atributo</option>
+                        <label for="idServicio" class="form-label">Servicio</label>
+                        <select class="form-select" id="idServicio" name="idServicio" required>
+                            <option value="">Seleccione un servicio</option>
                             <option th:each="attr : ${serviciosDisponibles}"
                                     th:value="${attr.id}"
                                     th:text="${attr.nombre}">
@@ -225,8 +228,8 @@
     </div>
 </div>
 
-<!-- Modal de Confirmación para Eliminar Atributo -->
-<div class="modal fade" id="eliminarAtributoModal" tabindex="-1">
+<!-- Modal de Confirmación para Eliminar Servicio -->
+<div class="modal fade" id="eliminarServicioModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -234,11 +237,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                ¿Está seguro que desea eliminar este atributo del dispositivo?
+                ¿Está seguro que desea eliminar este servicio del dispositivo?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="eliminarAtributoForm" method="POST">
+                <form id="eliminarServicioForm" method="POST">
                     <button type="submit" class="btn btn-danger">Eliminar</button>
                 </form>
             </div>
@@ -264,11 +267,11 @@
         table.order([0, 'asc']).draw();
     });
 
-    function confirmarEliminarAtributo(id) {
-        const modal = new bootstrap.Modal(document.getElementById('eliminarAtributoModal'));
-        const form = document.getElementById('eliminarAtributoForm');
+    function confirmarEliminarServicio(id) {
+        const modal = new bootstrap.Modal(document.getElementById('eliminarServicioModal'));
+        const form = document.getElementById('eliminarServicioForm');
         const dispositivoId = /*[[${dispositivo.id}]]*/ '';
-        form.action = '/sdn/dispositivos/' + dispositivoId + '/eliminarAtributo/' + id;
+        form.action = '/sdn/dispositivos/' + dispositivoId + '/eliminarServicio/' + id;
         modal.show();
     }
 
