@@ -202,69 +202,76 @@ public class ServiciosController {
         }
     }
 
-    @PostMapping("/{id}/aprobar-solicitud")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> aprobarSolicitud(
-            @PathVariable Integer id,
-            @RequestParam Integer dispositivoId,
-            HttpServletRequest request) {
-        Map<String, Object> response = new HashMap<>();
 
-        try {
-            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-            ServicioPorDispositivo spd = servicioPorDispositivoRepository
-                    .findByServicioIdAndDispositivoId(id, dispositivoId)
-                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada"));
+    private ServicioDTO convertToDTO(Servicio servicio) {
+        ServicioDTO dto = new ServicioDTO();
+        dto.setId(servicio.getId());
+        dto.setNombre(servicio.getNombre());
+        dto.setEstado(servicio.getEstado());
 
-            // Verificar que el usuario sea el creador del servicio
-            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
-                throw new RuntimeException("No tienes permisos para aprobar esta solicitud");
-            }
-
-            spd.setEstado(1); // Aprobado
-            servicioPorDispositivoRepository.save(spd);
-
-            response.put("status", "success");
-            response.put("message", "Solicitud aprobada exitosamente");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        if (servicio.getUsuarioCreador() != null) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO();
+            usuarioDTO.setId(servicio.getUsuarioCreador().getId());
+            usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
+            usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
+            usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
+            dto.setUsuarioCreador(usuarioDTO);
         }
+
+        dto.setPuertos(servicio.getPuertoPorServicios().stream()
+                .map(pps -> pps.getPuerto().getNumeroPuerto())
+                .collect(Collectors.toList()));
+
+        dto.setCantidadDispositivos(servicio.getServicioPorDispositivos().size());
+
+        return dto;
     }
 
-    @PostMapping("/{id}/rechazar-solicitud")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> rechazarSolicitud(
-            @PathVariable Integer id,
-            @RequestParam Integer dispositivoId,
-            @RequestParam String motivo,
-            HttpServletRequest request) {
-        Map<String, Object> response = new HashMap<>();
+    private Servicio2DTO convertToDTO2(Servicio servicio) {
+        Servicio2DTO dto = new Servicio2DTO();
+        dto.setId(servicio.getId());
+        dto.setNombre(servicio.getNombre());
+        dto.setEstado(servicio.getEstado());
 
+        if (servicio.getUsuarioCreador() != null) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO();
+            usuarioDTO.setId(servicio.getUsuarioCreador().getId());
+            usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
+            usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
+            usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
+            dto.setUsuarioCreador(usuarioDTO);
+        }
+
+        dto.setPuertos(servicio.getPuertoPorServicios().stream()
+                .map(pps -> pps.getPuerto().getNumeroPuerto())
+                .collect(Collectors.toList()));
+
+        dto.setServicioPorDispositivo(servicio.getServicioPorDispositivos());
+        dto.setSolicitudesPendientes(servicioPorDispositivoRepository.findByEstado(0)); //PENDIENTES
+
+        return dto;
+    }
+
+    // ENDPOINT ESPECÍFICOS
+    @GetMapping("/mis-dispositivos")
+    @ResponseBody
+    public ResponseEntity<List<DispositivoSelectDTO>> getMisDispositivos(HttpServletRequest request) {
         try {
             Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-            ServicioPorDispositivo spd = servicioPorDispositivoRepository
-                    .findByServicioIdAndDispositivoId(id, dispositivoId)
-                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada"));
+            List<Dispositivo> dispositivos = dispositivoRepository.findByUsuarioId(usuario.getId());
 
-            // Verificar que el usuario sea el creador del servicio
-            if (!spd.getServicio().getUsuarioCreador().getId().equals(usuario.getId())) {
-                throw new RuntimeException("No tienes permisos para rechazar esta solicitud");
-            }
+            List<DispositivoSelectDTO> dtos = dispositivos.stream()
+                    .map(d -> new DispositivoSelectDTO(
+                            d.getId(),
+                            d.getNombre(),
+                            d.getMac()
+                    ))
+                    .collect(Collectors.toList());
 
-            spd.setEstado(2); // Rechazado
-            spd.setMotivo(motivo);
-            servicioPorDispositivoRepository.save(spd);
-
-            response.put("status", "success");
-            response.put("message", "Solicitud rechazada exitosamente");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(dtos);
         } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            log.error("Error al obtener dispositivos: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -317,77 +324,6 @@ public class ServiciosController {
             response.put("status", "error");
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    private ServicioDTO convertToDTO(Servicio servicio) {
-        ServicioDTO dto = new ServicioDTO();
-        dto.setId(servicio.getId());
-        dto.setNombre(servicio.getNombre());
-        dto.setEstado(servicio.getEstado());
-
-        if (servicio.getUsuarioCreador() != null) {
-            UsuarioDTO usuarioDTO = new UsuarioDTO();
-            usuarioDTO.setId(servicio.getUsuarioCreador().getId());
-            usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
-            usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
-            usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
-            dto.setUsuarioCreador(usuarioDTO);
-        }
-
-        dto.setPuertos(servicio.getPuertoPorServicios().stream()
-                .map(pps -> pps.getPuerto().getNumeroPuerto())
-                .collect(Collectors.toList()));
-
-        dto.setCantidadDispositivos(servicio.getServicioPorDispositivos().size());
-
-        return dto;
-    }
-
-    private Servicio2DTO convertToDTO2(Servicio servicio) {
-        Servicio2DTO dto = new Servicio2DTO();
-        dto.setId(servicio.getId());
-        dto.setNombre(servicio.getNombre());
-        dto.setEstado(servicio.getEstado());
-
-        if (servicio.getUsuarioCreador() != null) {
-            UsuarioDTO usuarioDTO = new UsuarioDTO();
-            usuarioDTO.setId(servicio.getUsuarioCreador().getId());
-            usuarioDTO.setUsername(servicio.getUsuarioCreador().getUsername());
-            usuarioDTO.setNombres(servicio.getUsuarioCreador().getNombres());
-            usuarioDTO.setApellidoPaterno(servicio.getUsuarioCreador().getApellidoPaterno());
-            dto.setUsuarioCreador(usuarioDTO);
-        }
-
-        dto.setPuertos(servicio.getPuertoPorServicios().stream()
-                .map(pps -> pps.getPuerto().getNumeroPuerto())
-                .collect(Collectors.toList()));
-
-        dto.setServicioPorDispositivo(servicio.getServicioPorDispositivos());
-
-        return dto;
-    }
-
-    // ENDPOINT ESPECÍFICOS
-    @GetMapping("/mis-dispositivos")
-    @ResponseBody
-    public ResponseEntity<List<DispositivoSelectDTO>> getMisDispositivos(HttpServletRequest request) {
-        try {
-            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
-            List<Dispositivo> dispositivos = dispositivoRepository.findByUsuarioId(usuario.getId());
-
-            List<DispositivoSelectDTO> dtos = dispositivos.stream()
-                    .map(d -> new DispositivoSelectDTO(
-                            d.getId(),
-                            d.getNombre(),
-                            d.getMac()
-                    ))
-                    .collect(Collectors.toList());
-
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            log.error("Error al obtener dispositivos: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

@@ -13,4 +13,6 @@ public interface ServicioPorDispositivoRepository extends JpaRepository<Servicio
     List<ServicioPorDispositivo> findByDispositivoId(Integer dispositivoId);
     void deleteByServicioId(Integer servicioId);
 
+    List<ServicioPorDispositivo> findByEstado(Integer estado);
+
 }

@@ -18,4 +18,5 @@ public class Servicio2DTO {
     private UsuarioDTO usuarioCreador;
     private List<Integer> puertos;
     private List<ServicioPorDispositivo> servicioPorDispositivo;
+    private List<ServicioPorDispositivo> solicitudesPendientes;
 }
