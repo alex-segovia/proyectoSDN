@@ -1,8 +1,10 @@
 package com.example.proyectosdn.controller;
 
+import com.example.proyectosdn.dto.DispositivoDTO;
 import com.example.proyectosdn.dto.Servicio2DTO;
 import com.example.proyectosdn.dto.ServicioDTO;
 import com.example.proyectosdn.dto.UsuarioDTO;
+import com.example.proyectosdn.dto.vistas.DispositivoSelectDTO;
 import com.example.proyectosdn.entity.*;
 import com.example.proyectosdn.repository.*;
 import com.example.proyectosdn.service.UsuarioSesionService;
@@ -365,4 +367,29 @@ public class ServiciosController {
 
         return dto;
     }
+
+    // ENDPOINT ESPECÍFICOS
+    @GetMapping("/mis-dispositivos")
+    @ResponseBody
+    public ResponseEntity<List<DispositivoSelectDTO>> getMisDispositivos(HttpServletRequest request) {
+        try {
+            Usuario usuario = usuarioSesionService.obtenerUsuarioActivo(request);
+            List<Dispositivo> dispositivos = dispositivoRepository.findByUsuarioId(usuario.getId());
+
+            List<DispositivoSelectDTO> dtos = dispositivos.stream()
+                    .map(d -> new DispositivoSelectDTO(
+                            d.getId(),
+                            d.getNombre(),
+                            d.getMac()
+                    ))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            log.error("Error al obtener dispositivos: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 }
