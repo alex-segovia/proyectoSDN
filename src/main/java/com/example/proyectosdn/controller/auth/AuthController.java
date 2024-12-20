@@ -299,9 +299,7 @@ public class AuthController {
         }
     }
     @GetMapping("/")
-    public String mostrarLogin(Model model,
-                               @RequestParam(required = false) String logout,
-                               HttpSession session) {
+    public String mostrarLogin(Model model) {
         model.addAttribute("usuario", new Usuario());
         return "login";
     }
@@ -334,7 +332,7 @@ public class AuthController {
             usuarioRepository.save(usuario);
 
             redirectAttributes.addFlashAttribute("success", "Usuario registrado exitosamente.");
-            return "redirect:/sdn/autenticacion/";
+            return "redirect:/";
         } catch (Exception e) {
             model.addAttribute("error", "Ocurrió un error al registrar al usuario: " + e.getMessage());
             return "login";
