@@ -139,7 +139,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#agregarServicioModal">
                         <i class='bx bx-plus me-1'></i>
-                        Agregar Servicio
+                        Agregar Servicio (No implementado aún. Usar el de la vista de Servicios)
                     </button>
                 </div>
                 <div class="card-body">
@@ -149,7 +149,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
-                                <th>Puerto</th>
+                                <th>Puertos</th>
                                 <th>Motivo</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
@@ -159,13 +159,16 @@
                             <tr th:each="servicio : ${dispositivo.servicioPorDispositivos}">
                                 <td th:text="${servicio.servicio.id}"></td>
                                 <td th:text="${servicio.servicio.nombre}"></td>
-                                <td th:text="${servicio.servicio.puerto}"></td>
+                                <td>
+                                    <ul>
+                                        <li th:each="puerto : ${servicio.servicio.puertoPorServicios}"
+                                            th:text="${puerto.puerto.numeroPuerto}"></li>
+                                    </ul>
+                                </td>
                                 <td th:text="${servicio.motivo}"></td>
                                 <td>
-                                            <span th:if="${servicio.estado == 1}"
-                                                  class="badge bg-success">Activo</span>
-                                    <span th:unless="${servicio.estado == 1}"
-                                          class="badge bg-danger">Inactivo</span>
+                                    <span th:if="${servicio.estado == 1}" class="badge bg-success">Activo</span>
+                                    <span th:unless="${servicio.estado == 1}" class="badge bg-danger">Inactivo</span>
                                 </td>
                                 <td>
                                     <button class="btn btn-danger btn-sm"
@@ -177,12 +180,12 @@
                             </tbody>
                         </table>
                     </div>
-                    <div th:if="${dispositivo.servicioPorDispositivos.empty}"
-                         class="alert alert-info">
+                    <div th:if="${dispositivo.servicioPorDispositivos.empty}" class="alert alert-info">
                         <i class='bx bx-info-circle me-2'></i>
                         Este dispositivo no tiene servicios asignados
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
