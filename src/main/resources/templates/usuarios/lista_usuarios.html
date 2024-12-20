@@ -8,7 +8,10 @@
         <i class='bx bx-menu' id="header-toggle"></i>
     </div>
     <div class="header_user">
-        <span >Usuario</span>
+        <div class="user_info">
+            <span class="user_name" th:text="${usuarioActual.getNombres() + ' ' + usuarioActual.getApellidoPaterno() + ' ' + usuarioActual.getApellidoMaterno()}">Usuario</span>
+            <span class="user_role" th:text="${usuarioActual.getRol()}">Rol</span>
+        </div>
     </div>
 </header>
 
