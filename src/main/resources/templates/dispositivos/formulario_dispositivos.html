@@ -88,33 +88,24 @@
                                     </span>
                                     <select class="form-select" id="usuario" name="usuario.id" required>
                                         <option value="">Seleccione un usuario</option>
-                                        <!-- Si es Superadmin, mostrar todos los usuarios -->
-                                        <div th:if="${usuarioActivo.rol == 'Superadmin'}">
+                                        <th:block th:if="${usuarioActivo.rol == 'Superadmin'}">
                                             <option th:each="user : ${usuarios}"
                                                     th:value="${user.id}"
                                                     th:text="${user.nombres + ' ' + user.apellidoPaterno}"
                                                     th:selected="${dispositivo.usuario != null && dispositivo.usuario.id == user.id}">
                                             </option>
-                                        </div>
-                                        <!-- Si no es Superadmin, solo mostrar al usuario actual -->
-                                        <div th:unless="${usuarioActivo.rol == 'Superadmin'}">
+                                        </th:block>
+                                        <th:block th:unless="${usuarioActivo.rol == 'Superadmin'}">
                                             <option th:value="${usuarioActivo.id}"
                                                     th:text="${usuarioActivo.nombres + ' ' + usuarioActivo.apellidoPaterno}"
                                                     selected>
                                             </option>
-                                        </div>
+                                        </th:block>
                                     </select>
                                     <div class="invalid-feedback">
                                         Por favor seleccione un usuario
                                     </div>
                                 </div>
-                                <!-- Mostrar información adicional según el rol -->
-                                <small class="text-muted" th:if="${usuarioActivo.rol == 'Superadmin'}">
-                                    Puede asignar el dispositivo a cualquier usuario
-                                </small>
-                                <small class="text-muted" th:unless="${usuarioActivo.rol == 'Superadmin'}">
-                                    El dispositivo será asignado a su cuenta
-                                </small>
                             </div>
 
                             <!-- Estado y Autenticación -->
@@ -123,9 +114,9 @@
                                     <div class="col-md-6">
                                         <label for="estado" class="form-label">Estado</label>
                                         <div class="input-group">
-                                                <span class="input-group-text">
-                                                    <i class='bx bx-toggle-right'></i>
-                                                </span>
+                <span class="input-group-text">
+                    <i class='bx bx-toggle-right'></i>
+                </span>
                                             <select class="form-select"
                                                     th:field="*{estado}"
                                                     required>
@@ -139,8 +130,10 @@
                                         <div class="form-check form-switch mt-2">
                                             <input class="form-check-input"
                                                    type="checkbox"
-                                                   th:field="*{autenticado}"
-                                                   value="true"
+                                                   name="autenticado"
+                                                   th:checked="${dispositivo.autenticado == 1}"
+                                                   onclick="this.value = this.checked ? 1 : 0"
+                                                   value="0"
                                                    role="switch">
                                             <label class="form-check-label"
                                                    for="autenticado">Dispositivo autenticado</label>
@@ -222,46 +215,42 @@
             showCancelButton: true,
             confirmButtonText: 'Este dispositivo',
             cancelButtonText: 'Todos los dispositivos',
-            reverseButtons: true, // Invierte el orden de los botones
+            reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
                 // Usuario eligió "Este dispositivo"
                 let data = {
-                    "type" : "one",
+                    "type": "one"
                 };
-
                 $.ajax({
                     url: "/sdn/auth/logout",
                     type: "POST",
                     data: data,
-                    success: function (response) {
+                    success: function(response) {
                         console.log(response.content);
                         window.location.href = "/sdn/login";
                     },
-                    error: function (xhr, status, error) {
-                        const jsonResponse=xhr.responseText;
+                    error: function(xhr, status, error) {
+                        const jsonResponse = xhr.responseText;
                         console.log(jsonResponse);
                         window.location.href = "/sdn/login";
                     }
                 });
-
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 // Usuario eligió "Todos los dispositivos"
                 let data = {
-                    "type" : "all",
+                    "type": "all"
                 };
-
                 $.ajax({
                     url: "/sdn/auth/logout",
-                    contentType: ""
                     type: "POST",
                     data: data,
-                    success: function (response) {
+                    success: function(response) {
                         console.log(response.content);
                         window.location.href = "/sdn/login";
                     },
-                    error: function (xhr, status, error) {
-                        const jsonResponse=xhr.responseText;
+                    error: function(xhr, status, error) {
+                        const jsonResponse = xhr.responseText;
                         console.log(jsonResponse);
                         window.location.href = "/sdn/login";
                     }

@@ -110,55 +110,52 @@ public class DispositivosController {
                                      BindingResult result,
                                      Model model,
                                      @RequestParam(name = "usuario.id", required = false) Integer usuarioId,
+                                     @RequestParam(name = "autenticado", required = false) Integer autenticado,
                                      RedirectAttributes redirectAttributes,
                                      HttpServletRequest request) {
 
-        log.info("Guardando dispositivo: {}", dispositivo);
         Usuario usuarioActivo = usuarioSesionService.obtenerUsuarioActivo(request);
-
-        // Si no es Superadmin, solo puede asignar dispositivos a sí mismo
-        if (!usuarioActivo.getRol().equals("Superadmin") && !usuarioActivo.getId().equals(usuarioId)) {
-            redirectAttributes.addFlashAttribute("error", "Solo puede asignar dispositivos a su usuario");
-            return "redirect:/dispositivos";
-        }
-
-
-
-        if (result.hasErrors()) {
-            model.addAttribute("usuarios", usuarioRepository.findAll());
-            model.addAttribute("active", "dispositivos");
-            return "dispositivos/formulario_dispositivos";
-        }
+        log.info("Guardando dispositivo: {}", dispositivo);
 
         try {
-            // Si hay un usuario seleccionado, buscar y asignar
+            // Asignar usuario
             if (usuarioId != null) {
                 Usuario usuario = usuarioRepository.findById(usuarioId)
                         .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
                 dispositivo.setUsuario(usuario);
-            } else {
-                dispositivo.setUsuario(null);
+            }
+
+            // Asignar valores por defecto
+            dispositivo.setAutenticado(autenticado != null ? autenticado : 0);
+            if (dispositivo.getEstado() == null) {
+                dispositivo.setEstado(1);
             }
 
             // Verificar MAC única
             Optional<Dispositivo> dispositivoExistente = dispositivoRepository.findByMac(dispositivo.getMac());
-            if (dispositivoExistente.isPresent() && !dispositivoExistente.get().getId().equals(dispositivo.getId())) {
+            if (dispositivoExistente.isPresent() &&
+                    (dispositivo.getId() == null || !dispositivoExistente.get().getId().equals(dispositivo.getId()))) {
                 result.rejectValue("mac", "error.dispositivo", "La dirección MAC ya está registrada");
-                model.addAttribute("usuarios", usuarioRepository.findAll());
-                model.addAttribute("active", "dispositivos");
+                prepararModelo(model, usuarioActivo);
                 return "dispositivos/formulario_dispositivos";
             }
 
             dispositivoRepository.save(dispositivo);
             redirectAttributes.addFlashAttribute("mensaje", "Dispositivo guardado exitosamente");
-            return "redirect:/dispositivos";
+            return "redirect:/sdn/dispositivos";
 
-        } catch (EntityNotFoundException e) {
+        } catch (Exception e) {
+            log.error("Error al guardar dispositivo: ", e);
+            prepararModelo(model, usuarioActivo);
             model.addAttribute("error", "Error al guardar el dispositivo: " + e.getMessage());
-            model.addAttribute("usuarios", usuarioRepository.findAll());
-            model.addAttribute("active", "dispositivos");
             return "dispositivos/formulario_dispositivos";
         }
+    }
+
+    private void prepararModelo(Model model, Usuario usuarioActivo) {
+        model.addAttribute("usuarios", usuarioRepository.findAll());
+        model.addAttribute("active", "dispositivos");
+        model.addAttribute("usuarioActivo", usuarioActivo);
     }
 
     // Ver detalles del dispositivo
@@ -201,7 +198,7 @@ public class DispositivosController {
             redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el dispositivo");
         }
 
-        return "redirect:/dispositivos";
+        return "redirect:/sdn/dispositivos";
     }
 
     // Agregar servicio (antes era atributo) al dispositivo
@@ -255,7 +252,7 @@ public class DispositivosController {
             redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el servicio");
         }
 
-        return "redirect:/dispositivos/ver/" + idDispositivo;
+        return "redirect:/sdn/dispositivos/ver/" + idDispositivo;
     }
 
     // Manejador global de excepciones
@@ -264,6 +261,6 @@ public class DispositivosController {
                                                 RedirectAttributes redirectAttributes) {
         log.error("Error de entidad no encontrada: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        return "redirect:/dispositivos";
+        return "redirect:/sdn/dispositivos";
     }
 }
