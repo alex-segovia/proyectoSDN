@@ -30,7 +30,7 @@
                         Información del Usuario
                     </h5>
                     <div>
-                        <a th:href="@{/sdn/usuarios/editar/{id}(id=${usuario.id})}"
+                        <a th:unless="${usuario.estado == 0}" th:href="@{/sdn/usuarios/editar/{id}(id=${usuario.id})}"
                            class="btn btn-light btn-sm">
                             <i class='bx bx-edit me-1'></i>
                             Editar
@@ -82,13 +82,17 @@
 
                                 <dt class="col-sm-4">Estado:</dt>
                                 <dd class="col-sm-8">
+                                    <span th:if="${usuario.estado == 0}"
+                                          class="badge bg-success">
+                                            <i class='bx bx-check-circle me-1'></i>Pendiente
+                                        </span>
                                         <span th:if="${usuario.estado == 1}"
                                               class="badge bg-success">
-                                            <i class='bx bx-check-circle me-1'></i>Activo
+                                            <i class='bx bx-check-circle me-1'></i>Aceptado
                                         </span>
-                                    <span th:unless="${usuario.estado == 1}"
+                                    <span th:if="${usuario.estado == 2}"
                                           class="badge bg-danger">
-                                            <i class='bx bx-x-circle me-1'></i>Inactivo
+                                            <i class='bx bx-x-circle me-1'></i>Rechazado
                                         </span>
                                 </dd>
                             </dl>
@@ -98,7 +102,7 @@
             </div>
 
             <!-- Card de Dispositivos -->
-            <div class="card mb-4">
+            <div class="card mb-4" th:unless="${usuario.estado == 0}">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-devices me-2'></i>
@@ -158,7 +162,7 @@
             </div>
 
             <!-- Card de Servicios Creados -->
-            <div class="card">
+            <div class="card" th:unless="${usuario.estado == 0}">
                 <div class="card-header bg-success text-white">
                     <h5 class="card-title mb-0">
                         <i class='bx bx-tag me-2'></i>

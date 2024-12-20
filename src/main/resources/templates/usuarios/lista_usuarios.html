@@ -21,6 +21,10 @@
 <!-- Container Principal -->
 <div class="container-fluid mt-4">
 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Usuarios</h2>
+    </div>
+
     <!-- Alertas -->
     <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
         <span th:text="${mensaje}"></span>
@@ -90,10 +94,17 @@
             </table>
         </div>
     </div>
+</div>
+
+<div class="container-fluid mt-4" th:if="${solicitudesUsuarios!=null}">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Solicitudes de Usuarios</h2>
+    </div>
 
     <div class="card">
         <div class="card-body">
-            <table th:if="${solicitudesUsuarios!=null}" id="usuariosPendientesTable" class="table table-striped" style="width:100%">
+            <table id="usuariosPendientesTable" class="table table-striped" style="width:100%">
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -133,8 +144,8 @@
                                 <i class='bx bx-check'></i>
                             </a>
                             <a th:onclick="'rechazarUsuario('+${usuario.id}+')'"
-                                    class="btn btn-danger btn-sm"
-                                    title="Rechazar">
+                               class="btn btn-danger btn-sm"
+                               title="Rechazar">
                                 <i class='bx bx-x'></i>
                             </a>
                         </div>
