@@ -126,7 +126,7 @@ public class ServiciosController {
     @PostMapping("/guardar")
     public String guardarServicio(@Valid @ModelAttribute("servicio") Servicio servicio,
                                   BindingResult result,
-                                  @RequestParam("puertos") List<Integer> puertos,
+                                  @RequestParam(value = "puertos", required = false) List<Integer> puertos,
                                   Model model,
                                   RedirectAttributes redirectAttributes,
                                   HttpServletRequest request) {
@@ -165,19 +165,22 @@ public class ServiciosController {
             }
 
             // Guardar nuevos puertos
-            for (Integer numeroPuerto : puertos) {
-                Puerto puerto = puertoRepository.findByNumeroPuerto(numeroPuerto)
-                        .orElseGet(() -> {
-                            Puerto nuevoPuerto = new Puerto();
-                            nuevoPuerto.setNumeroPuerto(numeroPuerto);
-                            return puertoRepository.save(nuevoPuerto);
-                        });
+            if (puertos != null){
+                for (Integer numeroPuerto : puertos) {
+                    Puerto puerto = puertoRepository.findByNumeroPuerto(numeroPuerto)
+                            .orElseGet(() -> {
+                                Puerto nuevoPuerto = new Puerto();
+                                nuevoPuerto.setNumeroPuerto(numeroPuerto);
+                                return puertoRepository.save(nuevoPuerto);
+                            });
 
-                PuertoPorServicio pps = new PuertoPorServicio();
-                pps.setPuerto(puerto);
-                pps.setServicio(servicioGuardado);
-                puertoPorServicioRepository.save(pps);
+                    PuertoPorServicio pps = new PuertoPorServicio();
+                    pps.setPuerto(puerto);
+                    pps.setServicio(servicioGuardado);
+                    puertoPorServicioRepository.save(pps);
+                }
             }
+
 
             redirectAttributes.addFlashAttribute("mensaje",
                     servicio.getId() == null ? "Servicio creado exitosamente" : "Servicio actualizado exitosamente");
@@ -482,6 +485,35 @@ public class ServiciosController {
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+
+    @PostMapping("/eliminar/{id}")
+    public String eliminarServicio(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        Optional<Servicio> servicioOptional = servicioRepository.findById(id);
+
+        if (servicioOptional.isPresent()) {
+            Servicio servicio = servicioOptional.get();
+
+            // Validar si hay dispositivos asociados al servicio
+            if (!servicio.getServicioPorDispositivos().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "El servicio está asociado a dispositivos y no puede ser eliminado.");
+                return "redirect:/sdn/servicios";
+            }
+
+            // Validar si hay puertos asociados al servicio
+            if (!servicio.getPuertoPorServicios().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "El servicio está asociado a puertos y no puede ser eliminado.");
+                return "redirect:/sdn/servicios";
+            }
+
+            // Si no está asociado a dispositivos ni puertos, proceder con la eliminación
+            servicioRepository.delete(servicio);
+            redirectAttributes.addFlashAttribute("mensaje", "El servicio se eliminó correctamente.");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "El servicio con ID " + id + " no existe.");
+        }
+
+        return "redirect:/sdn/servicios";
     }
 
 

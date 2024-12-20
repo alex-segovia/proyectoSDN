@@ -148,16 +148,7 @@
                 form.addEventListener('submit', function(event) {
                     // Verificar que haya al menos un puerto
                     const puertos = document.getElementsByName('puertos');
-                    if (puertos.length === 0) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'Debe agregar al menos un puerto',
-                            icon: 'error'
-                        });
-                        return;
-                    }
+
 
                     if (!form.checkValidity()) {
                         event.preventDefault();

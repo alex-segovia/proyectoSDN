@@ -134,9 +134,12 @@ public class DispositivosController {
             Optional<Dispositivo> dispositivoExistente = dispositivoRepository.findByMac(dispositivo.getMac());
             if (dispositivoExistente.isPresent() &&
                     (dispositivo.getId() == null || !dispositivoExistente.get().getId().equals(dispositivo.getId()))) {
-                result.rejectValue("mac", "error.dispositivo", "La dirección MAC ya está registrada");
-                prepararModelo(model, usuarioActual);
-                return "dispositivos/formulario_dispositivos";
+
+                if(dispositivoExistente.get().getUsuario() != null){
+                    result.rejectValue("mac", "error.dispositivo", "La dirección MAC ya está registrada");
+                    prepararModelo(model, usuarioActual);
+                    return "dispositivos/formulario_dispositivos";
+                }
             }
 
             dispositivoRepository.save(dispositivo);
