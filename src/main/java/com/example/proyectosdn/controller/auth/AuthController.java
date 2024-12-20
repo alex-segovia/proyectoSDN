@@ -189,6 +189,19 @@ public class AuthController {
             }
             System.out.println("Intento de autenticación de "+ipAdd+" con el username "+username+" y contraseña "+password);
             String mac=httpClientService.obtenerMacPorIp(ipAdd);
+            if(mac==null){
+                switch (ipAdd){
+                    case "10.0.0.1":
+                        mac="fa:16:3e:73:0a:d2";
+                        break;
+                    case "10.0.0.2":
+                        mac="fa:16:3e:2b:a6:da";
+                        break;
+                    case "10.0.0.3":
+                        mac="fa:16:3e:a6:3c:89";
+                        break;
+                }
+            }
             System.out.println("MAC obtenida: "+mac);
 
             String usernameNuevo=usuarioRepository.obtenerUsernamePorDispositivo(mac);
